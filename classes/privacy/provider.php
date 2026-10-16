@@ -46,8 +46,21 @@ final class provider implements
     public static function get_metadata(\core_privacy\local\metadata\collection $collection):
             \core_privacy\local\metadata\collection {
         foreach (self::TABLES as $table => $field) {
-            $collection->add_database_table($table, [$field => "privacy:metadata:" . $table],
-                "privacy:metadata:" . $table);
+            $fields = [$field => "privacy:metadata:" . $table];
+            foreach (["content", "description", "feedback", "oldvalue", "newvalue", "title", "name",
+                "priority", "tags", "grade"] as $candidate) {
+                if (in_array($candidate, explode(",", [
+                    "projectboard_comment" => "content",
+                    "projectboard_evidence" => "description",
+                    "projectboard_grade" => "feedback",
+                    "projectboard_history" => "oldvalue,newvalue",
+                    "projectboard_task" => "title,description,priority,tags",
+                    "projectboard_board" => "name"
+                ][$table] ?? ""), true)) {
+                    $fields[$candidate] = "privacy:metadata:" . $table;
+                }
+            }
+            $collection->add_database_table($table, $fields, "privacy:metadata:" . $table);
         }
         $collection->add_subsystem_link("core_files", [], "privacy:metadata:projectboard_evidence");
         $collection->add_subsystem_link("core_message", [], "privacy:metadata:projectboard_notice");
@@ -71,7 +84,7 @@ final class provider implements
         $ids = $DB->get_fieldset_sql($sql, [$activity->id]);
         $users = [];
         foreach ($DB->get_records("projectboard_board", ["projectboardid" => $activity->id]) as $board) {
-            if ($board->owneruserid) {
+            if ($board->owneruserid > 0) {
                 $users[$board->owneruserid] = (int)$board->owneruserid;
             }
         }
@@ -79,6 +92,17 @@ final class provider implements
             $users[$grade->userid] = (int)$grade->userid;
             if ($grade->gradedby) {
                 $users[$grade->gradedby] = (int)$grade->gradedby;
+            }
+        }
+        $criteria = $DB->get_fieldset_select("projectboard_criterion", "id", "projectboardid = ?", [$activity->id]);
+        foreach ($criteria as $criterionid) {
+            foreach ($DB->get_records("projectboard_score", ["criterionid" => $criterionid]) as $score) {
+                if ($score->userid > 0) {
+                    $users[$score->userid] = (int)$score->userid;
+                }
+                if ($score->gradedby > 0) {
+                    $users[$score->gradedby] = (int)$score->gradedby;
+                }
             }
         }
         foreach ($ids as $taskid) {
@@ -129,12 +153,27 @@ final class provider implements
             if (!$activity) {
                 continue;
             }
-            $data = (object)["tasks" => [], "comments" => [], "evidence" => [], "grades" => []];
+            $data = (object)["tasks" => [], "comments" => [], "evidence" => [],
+                "grades" => [], "assignments" => [], "checklists" => [], "history" => [],
+                "notices" => [], "criteria" => [], "ownedboards" => []];
             $boards = $DB->get_records("projectboard_board", ["projectboardid" => $activity->id]);
             foreach ($boards as $board) {
+                if ((int)$board->owneruserid === $userid) {
+                    $data->ownedboards[] = $board;
+                }
                 foreach ($DB->get_records("projectboard_task", ["boardid" => $board->id]) as $task) {
                     if ($task->createdby == $userid) {
                         $data->tasks[] = $task;
+                    }
+                    foreach ([
+                        "projectboard_assignee" => "assignments",
+                        "projectboard_check" => "checklists",
+                        "projectboard_history" => "history",
+                        "projectboard_notice" => "notices"
+                    ] as $table => $collection) {
+                        foreach ($DB->get_records($table, ["taskid" => $task->id, "userid" => $userid]) as $entry) {
+                            $data->$collection[] = $entry;
+                        }
                     }
                     foreach ($DB->get_records("projectboard_comment", ["taskid" => $task->id, "userid" => $userid]) as $comment) {
                         $data->comments[] = $comment;
@@ -146,6 +185,15 @@ final class provider implements
             }
             $data->grades = array_values($DB->get_records("projectboard_grade",
                 ["projectboardid" => $activity->id, "userid" => $userid]));
+            $criteria = $DB->get_fieldset_select("projectboard_criterion", "id", "projectboardid = ?",
+                [$activity->id]);
+            foreach ($criteria as $criterionid) {
+                foreach ($DB->get_records("projectboard_score", [
+                    "criterionid" => $criterionid, "userid" => $userid
+                ]) as $score) {
+                    $data->criteria[] = $score;
+                }
+            }
             $writer = \core_privacy\local\request\writer::with_context($context);
             $writer->export_data([get_string("pluginname", "projectboard")], $data);
             foreach ($data->evidence as $evidence) {
@@ -191,6 +239,9 @@ final class provider implements
                     "projectboard_comment" => "commentattachment"] as $table => $area) {
                     foreach ($DB->get_records($table, ["taskid" => $task->id, "userid" => $userid]) as $row) {
                         get_file_storage()->delete_area_files($context->id, "mod_projectboard", $area, $row->id);
+                        if ($table === "projectboard_comment") {
+                            $DB->set_field("projectboard_comment", "parentid", 0, ["parentid" => $row->id]);
+                        }
                         $DB->delete_records($table, ["id" => $row->id]);
                     }
                 }
@@ -205,7 +256,12 @@ final class provider implements
                 }
             }
             if ($board->owneruserid == $userid) {
-                $DB->set_field("projectboard_board", "owneruserid", 0, ["id" => $board->id]);
+                // Preserve collaborative project records while irreversibly severing the account reference.
+                // Negative synthetic ownership identifiers avoid collisions with the unique board index.
+                $DB->set_field("projectboard_board", "owneruserid", -1 * (int)$board->id,
+                    ["id" => $board->id]);
+                $DB->set_field("projectboard_board", "name", get_string("board", "projectboard"),
+                    ["id" => $board->id]);
             }
         }
         $DB->delete_records("projectboard_grade", ["projectboardid" => $activity->id, "userid" => $userid]);
