@@ -1,0 +1,85 @@
+<div class="projectboard-details" data-details-task="{{id}}" data-version="{{version}}">
+    <h3>{{title}}</h3>
+    {{#blocked}}<p class="alert alert-warning">{{#strings}}{{blocked}}{{/strings}}</p>{{/blocked}}
+    {{#canedit}}
+    <form data-form="task_update">
+        <input type="hidden" name="taskid" value="{{id}}">
+        <input type="hidden" name="version" value="{{version}}">
+        <label>{{#strings}}{{tasktitle}}{{/strings}}<input class="form-control" name="title" value="{{title}}" maxlength="255" required></label>
+        <label>{{#strings}}{{description}}{{/strings}}<textarea class="form-control" name="description" rows="5">{{description}}</textarea></label>
+        <div class="projectboard-fields">
+            <label>{{#strings}}{{priority}}{{/strings}}
+                <select class="form-control" name="priority" data-current-priority="{{priority}}">
+                    <option value="low">{{#strings}}{{low}}{{/strings}}</option>
+                    <option value="normal">{{#strings}}{{normal}}{{/strings}}</option>
+                    <option value="high">{{#strings}}{{high}}{{/strings}}</option>
+                    <option value="urgent">{{#strings}}{{urgent}}{{/strings}}</option>
+                </select>
+            </label>
+            <label>{{#strings}}{{start}}{{/strings}}<input class="form-control" type="datetime-local" name="startdate" value="{{startdate}}"></label>
+            <label>{{#strings}}{{duedate}}{{/strings}}<input class="form-control" type="datetime-local" name="duedate" value="{{duedate}}"></label>
+            <label>{{#strings}}{{estimate}}{{/strings}}<input class="form-control" type="number" name="estimate" min="0" value="{{estimate}}"></label>
+        </div>
+        <label>{{#strings}}{{tags}}{{/strings}}<input class="form-control" name="tags" value="{{tags}}"></label>
+        <div class="projectboard-form-actions">
+            <button class="btn btn-primary" type="submit">{{#strings}}{{save}}{{/strings}}</button>
+            <button class="btn btn-outline-secondary" type="button" data-task-duplicate="{{id}}">{{#strings}}{{duplicate}}{{/strings}}</button>
+            <button class="btn btn-outline-danger" type="button" data-task-archive="{{id}}">{{#strings}}{{archive}}{{/strings}}</button>
+        </div>
+    </form>
+    {{^canassign}}{{/canassign}}
+    {{/canedit}}
+    {{#canassign}}
+    <form data-form="task_assign">
+        <input type="hidden" name="taskid" value="{{id}}">
+        <label>{{#strings}}{{assignees}}{{/strings}}<input class="form-control" name="userids" value="{{assigneeids}}"></label>
+        <button class="btn btn-sm btn-outline-secondary" type="submit">{{#strings}}{{assign}}{{/strings}}</button>
+    </form>
+    {{/canassign}}
+    <section class="projectboard-details-section">
+        <h4>{{#strings}}{{taskchecklist}}{{/strings}} ({{checkpercent}}%)</h4>
+        <ul class="projectboard-check-items">
+        {{#checklist}}
+            <li><label><input type="checkbox" data-check-toggle="{{id}}" data-taskid="{{taskid}}" {{#done}}checked{{/done}} {{^canedit}}disabled{{/canedit}}> {{title}}</label>
+            {{#canedit}}<button type="button" data-check-delete="{{id}}" data-taskid="{{taskid}}" aria-label="{{#strings}}{{archive}}{{/strings}}">×</button>{{/canedit}}</li>
+        {{/checklist}}
+        </ul>
+        {{#canedit}}
+        <form data-form="check_add"><input type="hidden" name="taskid" value="{{id}}">
+            <input class="form-control" name="title" required maxlength="255" aria-label="{{#strings}}{{addcheck}}{{/strings}}">
+            <button class="btn btn-sm btn-outline-secondary" type="submit">{{#strings}}{{addcheck}}{{/strings}}</button>
+        </form>
+        {{/canedit}}
+        {{#canadd}}<button class="btn btn-sm btn-outline-secondary" data-task-subtask="{{id}}" type="button">{{#strings}}{{subtask}}{{/strings}}</button>{{/canadd}}
+    </section>
+    <section class="projectboard-details-section">
+        <h4>{{#strings}}{{adddependency}}{{/strings}}</h4>
+        <ul>{{#dependencies}}<li>#{{id}} — {{title}} {{#canedit}}<button type="button" data-dep-delete="{{id}}" data-taskid="{{../../id}}">×</button>{{/canedit}}</li>{{/dependencies}}</ul>
+        {{#canedit}}<form data-form="dep_add"><input type="hidden" name="taskid" value="{{id}}">
+            <label>{{#strings}}{{tasktitle}}{{/strings}}<input class="form-control" name="dependsid" type="number" min="1" required></label>
+            <button class="btn btn-sm btn-outline-secondary" type="submit">{{#strings}}{{adddependency}}{{/strings}}</button>
+        </form>{{/canedit}}
+    </section>
+    <section class="projectboard-details-section">
+        <h4>{{#strings}}{{evidence}}{{/strings}}</h4>
+        <ul>{{#evidences}}<li><a href="{{url}}">{{filename}}</a> — {{description}}</li>{{/evidences}}</ul>
+        {{^evidences}}<p>{{#strings}}{{noevidence}}{{/strings}}</p>{{/evidences}}
+        {{#canfile}}<a class="btn btn-sm btn-outline-secondary" href="{{evidenceurl}}">{{#strings}}{{addevidence}}{{/strings}}</a>{{/canfile}}
+    </section>
+    <section class="projectboard-details-section">
+        <h4>{{#strings}}{{comment}}{{/strings}}</h4>
+        {{#comments}}<article class="projectboard-comment"><strong>{{author}}</strong> <time>{{when}}</time>
+            <div>{{{content}}}</div>
+            {{#cancomment}}<button type="button" class="btn btn-link btn-sm" data-reply-to="{{id}}">↳ {{#strings}}{{comment}}{{/strings}}</button>{{/cancomment}}
+        </article>{{/comments}}
+        {{#cancomment}}<form data-form="comment_add">
+            <input name="taskid" value="{{id}}" type="hidden"><input name="parentid" type="hidden" value="0" data-reply-id>
+            <textarea name="content" class="form-control" rows="3" required aria-label="{{#strings}}{{comment}}{{/strings}}"></textarea>
+            <button class="btn btn-primary btn-sm" type="submit">{{#strings}}{{addcomment}}{{/strings}}</button>
+        </form>{{/cancomment}}
+    </section>
+    {{#showhistory}}<section class="projectboard-details-section">
+        <h4>{{#strings}}{{history}}{{/strings}}</h4>
+        <ol>{{#history}}<li>{{when}} — {{action}} ({{userid}}): {{oldvalue}} → {{newvalue}}</li>{{/history}}</ol>
+    </section>{{/showhistory}}
+</div>

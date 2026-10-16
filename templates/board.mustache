@@ -1,0 +1,44 @@
+<div class="projectboard-board" data-boardid="{{boardid}}" role="region" aria-label="{{name}}">
+    {{#columns}}
+    <section class="projectboard-column" data-columnid="{{id}}" tabindex="0" aria-label="{{name}}">
+        <header class="projectboard-column-header" style="border-top-color: {{colour}};">
+            <div class="projectboard-column-title"><h3>{{name}}</h3><span class="projectboard-count">{{count}}{{#wiplimit}} / {{wiplimit}}{{/wiplimit}}</span></div>
+            {{#canmanage}}
+            <div class="projectboard-column-actions">
+                <button class="projectboard-icon" type="button" data-column-order="-1" data-columnid="{{id}}" aria-label="{{#strings}}{{moveup}}{{/strings}}">←</button>
+                <button class="projectboard-icon" type="button" data-column-order="1" data-columnid="{{id}}" aria-label="{{#strings}}{{movedown}}{{/strings}}">→</button>
+                <button class="projectboard-icon" type="button" data-column-archive="{{id}}" aria-label="{{#strings}}{{archivecolumn}}{{/strings}}">×</button>
+            </div>
+            {{/canmanage}}
+        </header>
+        <div class="projectboard-cards" data-dropzone="{{id}}">
+            {{#cards}}
+            <article class="projectboard-card projectboard-card--{{priority}}" data-taskid="{{id}}" data-version="{{version}}" data-priority="{{priority}}" draggable="{{#canmove}}true{{/canmove}}{{^canmove}}false{{/canmove}}" tabindex="0" role="button" aria-label="{{title}}">
+                <header>
+                    <button type="button" class="projectboard-card-open" data-open-task="{{id}}">{{title}}</button>
+                    {{#isblocked}}<span class="projectboard-pill projectboard-pill--blocked" title="{{#strings}}{{blocked}}{{/strings}}">⛔</span>{{/isblocked}}
+                    {{#overdue}}<span class="projectboard-pill projectboard-pill--overdue">{{#strings}}{{late}}{{/strings}}</span>{{/overdue}}
+                </header>
+                <p class="projectboard-tags">{{tags}}</p>
+                <div class="projectboard-card-metadata">
+                    <span class="projectboard-priority">{{prioritylabel}}</span>
+                    {{#duedate}}<time>{{duedate}}</time>{{/duedate}}
+                    {{#hascheck}}<span>{{checkdone}}/{{checktotal}} ✓</span>{{/hascheck}}
+                    <span aria-label="{{#strings}}{{comment}}{{/strings}}">{{comments}} ◌</span>
+                </div>
+                {{#hascheck}}<progress value="{{checkdone}}" max="{{checktotal}}">{{checkpercent}}%</progress>{{/hascheck}}
+                <div class="projectboard-assignees">{{#assignees}}<span class="projectboard-avatar" title="{{name}}">{{name}}</span>{{/assignees}}</div>
+                {{#canmove}}
+                <div class="projectboard-move-control">
+                    <label class="sr-only" for="task-move-{{id}}">{{#strings}}{{move}}{{/strings}}</label>
+                    <select id="task-move-{{id}}" data-move-target class="form-control form-control-sm">{{#positions}}<option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>{{/positions}}</select>
+                    <button class="btn btn-sm btn-outline-secondary" type="button" data-move-task="{{id}}">{{#strings}}{{move}}{{/strings}}</button>
+                </div>
+                {{/canmove}}
+            </article>
+            {{/cards}}
+        </div>
+        {{#canadd}}<button class="projectboard-add-inline" type="button" data-add-in-column="{{id}}">+ {{#strings}}{{addtask}}{{/strings}}</button>{{/canadd}}
+    </section>
+    {{/columns}}
+</div>
