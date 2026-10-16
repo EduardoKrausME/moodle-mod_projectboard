@@ -35,6 +35,24 @@
         <button class="btn btn-sm btn-outline-secondary" type="submit">{{#strings}}{{assign}}{{/strings}}</button>
     </form>
     {{/canassign}}
+    {{#canmove}}
+    <form data-form="review_submit">
+        <input name="taskid" type="hidden" value="{{id}}">
+        <input name="version" type="hidden" value="{{version}}">
+        <button class="btn btn-sm btn-outline-primary" type="submit">{{#strings}}{{sendreview}}{{/strings}}</button>
+    </form>
+    {{/canmove}}
+    {{#canreview}}
+    <form data-form="review_approve">
+        <input name="taskid" type="hidden" value="{{id}}">
+        <input name="version" type="hidden" value="{{version}}">
+        <label>{{#strings}}{{reviewcomment}}{{/strings}}<textarea class="form-control" name="feedback" rows="2"></textarea></label>
+        <div class="projectboard-form-actions">
+            <button class="btn btn-success btn-sm" type="submit">{{#strings}}{{approve}}{{/strings}}</button>
+            <button class="btn btn-warning btn-sm" type="button" data-review-return="{{id}}">{{#strings}}{{returnreview}}{{/strings}}</button>
+        </div>
+    </form>
+    {{/canreview}}
     <section class="projectboard-details-section">
         <h4>{{#strings}}{{taskchecklist}}{{/strings}} ({{checkpercent}}%)</h4>
         <ul class="projectboard-check-items">

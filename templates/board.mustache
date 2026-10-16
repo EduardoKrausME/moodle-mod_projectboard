@@ -7,8 +7,18 @@
             <div class="projectboard-column-actions">
                 <button class="projectboard-icon" type="button" data-column-order="-1" data-columnid="{{id}}" aria-label="{{#strings}}{{moveup}}{{/strings}}">←</button>
                 <button class="projectboard-icon" type="button" data-column-order="1" data-columnid="{{id}}" aria-label="{{#strings}}{{movedown}}{{/strings}}">→</button>
+                <button class="projectboard-icon" type="button" data-column-edit="{{id}}" data-name="{{name}}" data-colour="{{colour}}" data-wip="{{wiplimit}}" aria-label="{{#strings}}{{editcolumn}}{{/strings}}">✎</button>
                 <button class="projectboard-icon" type="button" data-column-archive="{{id}}" aria-label="{{#strings}}{{archivecolumn}}{{/strings}}">×</button>
             </div>
+            <details class="projectboard-transition-rules">
+                <summary>{{#strings}}{{transition}}{{/strings}}</summary>
+                {{#transitions}}
+                    <button class="btn btn-sm btn-outline-secondary" type="button"
+                        data-transition-toggle="1" data-from="{{fromid}}" data-to="{{toid}}" data-allowed="{{#blocked}}1{{/blocked}}{{^blocked}}0{{/blocked}}">
+                        {{name}} {{#allowed}}✓{{/allowed}}{{#blocked}}×{{/blocked}}
+                    </button>
+                {{/transitions}}
+            </details>
             {{/canmanage}}
         </header>
         <div class="projectboard-cards" data-dropzone="{{id}}">

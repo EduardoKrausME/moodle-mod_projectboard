@@ -54,6 +54,7 @@
     <dialog id="projectboard-column-dialog" class="projectboard-dialog">
         <h3>{{#strings}}{{addcolumn}}{{/strings}}</h3>
         <form data-form="column_create">
+            <input type="hidden" name="columnid" value="0">
             <label>{{#strings}}{{columnname}}{{/strings}}<input name="name" class="form-control" required maxlength="120"></label>
             <label>{{#strings}}{{columncolour}}{{/strings}}<input type="color" name="colour" value="#64748b"></label>
             <label>{{#strings}}{{wiplimit}}{{/strings}}<input class="form-control" type="number" name="wiplimit" min="0" value="0"></label>

@@ -109,9 +109,24 @@ final class board_data {
                     }, $all)
                 ];
             }
+            $transitions = [];
+            foreach ($all as $destination) {
+                if ($destination->id === $column->id) {
+                    continue;
+                }
+                $rule = $DB->get_record("projectboard_transition", [
+                    "fromcolumnid" => $column->id, "tocolumnid" => $destination->id
+                ]);
+                $transitions[] = [
+                    "fromid" => (int)$column->id, "toid" => (int)$destination->id,
+                    "name" => $destination->name, "allowed" => !$rule || $rule->allowed,
+                    "blocked" => $rule && !$rule->allowed
+                ];
+            }
             $columns[] = [
                 "id" => (int)$column->id, "name" => $column->name,
                 "colour" => $column->colour, "wiplimit" => (int)$column->wiplimit,
+                "transitions" => $transitions,
                 "count" => count($cards), "cards" => $cards,
                 "hascards" => !empty($cards), "canadd" => $canadd,
                 "canmanage" => has_capability("mod/projectboard:managecolumns", $context)
@@ -204,7 +219,8 @@ final class board_data {
             "estimate" => (int)$task->estimate, "version" => (int)$task->version,
             "boardid" => (int)$task->boardid,
             "canedit" => $canedit, "cancomment" => $cancomment, "canreview" => $canreview,
-            "canfile" => $canfile, "canassign" => has_capability("mod/projectboard:assign", $context) &&
+            "canfile" => $canfile, "canmove" => has_capability("mod/projectboard:movetask", $context),
+            "canassign" => has_capability("mod/projectboard:assign", $context) &&
                 ($activity->allowassign || \mod_projectboard\access_manager::can_manage($cm)),
             "canadd" => has_capability("mod/projectboard:addtask", $context),
             "columns" => $columns, "checklist" => $items, "checkpercent" => $check["percent"],
@@ -228,8 +244,9 @@ final class board_data {
             "adddependency", "subtask", "history", "managecolumns", "columnname",
             "columncolour", "wiplimit", "addcolumn", "archivecolumn", "moveup", "movedown",
             "blocked", "late", "completed", "report", "filter", "search", "status",
+            "editcolumn", "transition",
             "grade", "feedback", "managegrade", "sendreview", "approve", "reopen",
-            "returnreview", "unassigned", "noevidence", "selectboard", "actions"];
+            "returnreview", "reviewcomment", "unassigned", "noevidence", "selectboard", "actions"];
         $strings = [];
         foreach ($keys as $key) {
             $strings[$key] = get_string($key, "projectboard");

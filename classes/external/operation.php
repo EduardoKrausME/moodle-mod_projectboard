@@ -81,6 +81,16 @@ final class operation extends external_api {
                 \mod_projectboard\task_service::assign($activity, $cm, $data);
                 $changed = true;
                 break;
+            case "review_submit":
+                \mod_projectboard\review_service::submit($activity, $cm, $data);
+                $changed = true;
+                break;
+            case "review_approve":
+            case "review_return":
+                \mod_projectboard\review_service::evaluate($activity, $cm, $data,
+                    $action === "review_approve");
+                $changed = true;
+                break;
             case "task_archive":
                 \mod_projectboard\task_service::archive($activity, $cm, $data);
                 $changed = true;

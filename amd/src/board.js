@@ -127,7 +127,7 @@ define(["jquery", "core/ajax", "core/notification"], function ($, Ajax, Notifica
             const payload = collectForm(form);
             try {
                 const result = await request(app, action, payload);
-                if (action === "task_create" || action === "grade_save" || action === "column_create") {
+                if (action === "task_create" || action === "grade_save" || action === "column_create" || action === "column_edit") {
                     closeDialog(form.closest("dialog"));
                 }
                 if (action === "task_create" && result.taskid) {
@@ -160,7 +160,12 @@ define(["jquery", "core/ajax", "core/notification"], function ($, Ajax, Notifica
                 return;
             }
             if (target.matches("[data-open-column]")) {
-                openDialog(app.querySelector("#projectboard-column-dialog"));
+                const dialog = app.querySelector("#projectboard-column-dialog");
+                const form = dialog.querySelector("form");
+                form.reset();
+                form.dataset.form = "column_create";
+                form.querySelector("[name=columnid]").value = "0";
+                openDialog(dialog);
                 return;
             }
             if (target.matches("[data-open-grade]")) {
@@ -188,6 +193,31 @@ define(["jquery", "core/ajax", "core/notification"], function ($, Ajax, Notifica
                     columnid: Number(target.dataset.columnid),
                     direction: Number(target.dataset.columnOrder)
                 }).catch(() => {});
+                return;
+            }
+            if (target.dataset.columnEdit) {
+                const dialog = app.querySelector("#projectboard-column-dialog");
+                const form = dialog.querySelector("form");
+                form.dataset.form = "column_edit";
+                form.querySelector("[name=columnid]").value = target.dataset.columnEdit;
+                form.querySelector("[name=name]").value = target.dataset.name;
+                form.querySelector("[name=colour]").value = target.dataset.colour;
+                form.querySelector("[name=wiplimit]").value = target.dataset.wip;
+                openDialog(dialog);
+                return;
+            }
+            if (target.dataset.transitionToggle) {
+                await request(app, "column_transition", {
+                    boardid: currentBoard(app),
+                    columnid: Number(target.dataset.from),
+                    targetid: Number(target.dataset.to),
+                    allowed: Number(target.dataset.allowed)
+                }).catch(() => {});
+                return;
+            }
+            if (target.dataset.reviewReturn) {
+                const form = target.closest("form");
+                await request(app, "review_return", collectForm(form)).catch(() => {});
                 return;
             }
             if (target.dataset.columnArchive) {
