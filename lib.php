@@ -122,7 +122,7 @@ function projectboard_get_completion_state($course, $cm, $userid, $type) {
     $hascustom = (bool)($activity->completioncreated || $activity->completiondone ||
         $activity->completionproject || $activity->completionchecklist ||
         $activity->completiongraded || $activity->completionminscore);
-    return !$hascustom || $custom;
+    return $hascustom ? $custom : $type;
 }
 
 function projectboard_get_coursemodule_info($cm) {
@@ -135,6 +135,12 @@ function projectboard_get_coursemodule_info($cm) {
     $info->name = $activity->name;
     if ($cm->showdescription) {
         $info->content = format_module_intro("projectboard", $activity, $cm->id, false);
+    }
+    if ($cm->completion == COMPLETION_TRACKING_AUTOMATIC) {
+        $full = $DB->get_record("projectboard", ["id" => $cm->instance], "*", MUST_EXIST);
+        foreach (\mod_projectboard\completion\custom_completion::get_defined_custom_rules() as $rule) {
+            $info->customdata["customcompletionrules"][$rule] = $full->$rule;
+        }
     }
     return $info;
 }
