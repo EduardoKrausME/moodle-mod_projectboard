@@ -167,7 +167,14 @@ final class task_service {
                 if (in_array($field, ["startdate", "duedate", "estimate"], true)) {
                     $task->$field = max(0, (int)$data[$field]);
                 } else if ($field === "description") {
-                    $task->$field = clean_param($data[$field], PARAM_TEXT);
+                    $requestedformat = (int)($data["descriptionformat"] ?? FORMAT_PLAIN);
+                    if ($requestedformat === FORMAT_HTML) {
+                        $task->description = clean_param($data[$field], PARAM_CLEANHTML);
+                        $task->descriptionformat = FORMAT_HTML;
+                    } else {
+                        $task->description = clean_param($data[$field], PARAM_TEXT);
+                        $task->descriptionformat = FORMAT_PLAIN;
+                    }
                 } else if ($field === "priority") {
                     $task->$field = in_array($data[$field], ["low", "normal", "high", "urgent"], true)
                         ? $data[$field] : "normal";

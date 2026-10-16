@@ -1,6 +1,10 @@
 <div class="projectboard-details" data-details-task="{{id}}" data-version="{{version}}">
     <h3>{{title}}</h3>
     {{#blocked}}<p class="alert alert-warning">{{#strings}}{{blocked}}{{/strings}}</p>{{/blocked}}
+    {{#formatteddescription}}
+    <section class="projectboard-details-section">{{{formatteddescription}}}</section>
+    {{/formatteddescription}}
+    {{#canedit}}<p><a class="btn btn-link" href="{{editorurl}}">{{#strings}}{{taskedit}}{{/strings}}</a></p>{{/canedit}}
     {{#canedit}}
     <form data-form="task_update">
         <input type="hidden" name="taskid" value="{{id}}">

@@ -218,6 +218,9 @@ final class board_data {
         return [
             "id" => (int)$task->id, "title" => $task->title,
             "description" => $task->description,
+            "formatteddescription" => format_text($task->description, $task->descriptionformat,
+                ["context" => $context]), "editorurl" => (new \moodle_url(
+                "/mod/projectboard/task.php", ["id" => $cm->id, "taskid" => $task->id]))->out(false),
             "priority" => $task->priority, "tags" => $task->tags,
             "startdate" => $task->startdate ? userdate($task->startdate, "%Y-%m-%dT%H:%M") : "",
             "duedate" => $task->duedate ? userdate($task->duedate, "%Y-%m-%dT%H:%M") : "",
