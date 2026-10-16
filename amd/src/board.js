@@ -16,7 +16,8 @@ define(["jquery", "core/ajax", "core/notification"], function ($, Ajax, Notifica
         region.textContent = text;
         region.classList.toggle("projectboard-error", error);
     };
-    const findTask = (app, id) => app.querySelector('[data-taskid="' + Number(id) + '"][data-version]');
+    const findTask = (app, id) => Array.from(app.querySelectorAll("[data-taskid][data-version]"))
+        .find((element) => Number(element.dataset.taskid) === Number(id));
     const currentBoard = (app) => {
         const board = getBoard(app);
         return board ? Number(board.dataset.boardid) : 0;
@@ -112,7 +113,8 @@ define(["jquery", "core/ajax", "core/notification"], function ($, Ajax, Notifica
     };
 
     const init = (cmid) => {
-        const app = document.querySelector('[data-projectboard-app][data-cmid="' + Number(cmid) + '"]');
+        const app = Array.from(document.querySelectorAll("[data-projectboard-app][data-cmid]"))
+            .find((element) => Number(element.dataset.cmid) === Number(cmid));
         if (!app) {
             return;
         }
