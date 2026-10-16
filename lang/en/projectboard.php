@@ -177,3 +177,7 @@ $string["unassigned"] = "Unassigned";
 $string["urgent"] = "Urgent";
 $string["wiplimit"] = "WIP limit";
 $string["workmode"] = "Collaboration mode";
+
+$string["criterionname"] = "Grading criterion";
+$string["maxscore"] = "Maximum criterion score";
+$string["overridelabel"] = "Individual grade override";

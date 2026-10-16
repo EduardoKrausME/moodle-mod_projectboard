@@ -69,6 +69,7 @@
         <form data-form="grade_save">
             <input name="boardid" type="hidden" value="{{selectedboardid}}" data-current-board>
             <label>{{#strings}}{{assignees}}{{/strings}}<input class="form-control" name="userid" type="number" min="1"></label>
+            <label><input name="override" type="checkbox" value="1"> {{#strings}}{{overridelabel}}{{/strings}}</label>
             <label>{{#strings}}{{grade}}{{/strings}}<input class="form-control" name="grade" type="number" min="0" step=".01" required></label>
             <label>{{#strings}}{{feedback}}{{/strings}}<textarea class="form-control" name="feedback" rows="4"></textarea></label>
             <div class="projectboard-form-actions">
@@ -76,5 +77,24 @@
                 <button class="btn btn-secondary" type="button" data-close-dialog>{{#strings}}{{cancel}}{{/strings}}</button>
             </div>
         </form>
+        {{#cancriteria}}
+        <hr>
+        <h4>{{#strings}}{{criterionname}}{{/strings}}</h4>
+        <form data-form="criterion_create">
+            <label>{{#strings}}{{criterionname}}{{/strings}}<input class="form-control" name="name" maxlength="255" required></label>
+            <label>{{#strings}}{{maxscore}}{{/strings}}<input class="form-control" name="maxscore" type="number" min=".01" step=".01" required></label>
+            <button type="submit" class="btn btn-outline-primary">{{#strings}}{{save}}{{/strings}}</button>
+        </form>
+        {{#criteria}}
+        <form data-form="criterion_score">
+            <strong>{{name}} ({{maxscore}})</strong>
+            <input type="hidden" name="criterionid" value="{{id}}">
+            <input type="hidden" name="boardid" data-current-board value="{{selectedboardid}}">
+            <label>{{#strings}}{{assignees}}{{/strings}}<input class="form-control" name="userid" type="number" min="1" required></label>
+            <label>{{#strings}}{{grade}}{{/strings}}<input class="form-control" name="score" type="number" step=".01" min="0" max="{{maxscore}}" required></label>
+            <button type="submit" class="btn btn-outline-primary">{{#strings}}{{save}}{{/strings}}</button>
+        </form>
+        {{/criteria}}
+        {{/cancriteria}}
     </dialog>
 </div>

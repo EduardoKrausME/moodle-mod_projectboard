@@ -54,6 +54,11 @@ final class grading_service {
         $users = [];
         if ($activity->workmode === "individual") {
             $users = [(int)$board->owneruserid];
+        } else if ($activity->grademode === "project" && !empty($data["override"]) &&
+                !empty($data["userid"])) {
+            $userid = (int)$data["userid"];
+            access_manager::require_assignee($userid, $board, $activity, $cm);
+            $users = [$userid];
         } else if ($activity->workmode === "groups" && $activity->grademode === "project") {
             $users = array_keys(groups_get_members((int)$board->groupid));
         } else if ($activity->grademode === "project") {

@@ -53,6 +53,11 @@ final class board_data {
             "canmanagecolumns" => has_capability("mod/projectboard:managecolumns", $context),
             "canreports" => has_capability("mod/projectboard:viewreports", $context),
             "cangrade" => has_capability("mod/projectboard:grade", $context) && $activity->grademode !== "none",
+            "cancriteria" => has_capability("mod/projectboard:grade", $context) && $activity->grademode === "criteria",
+            "criteria" => array_map(static function($criterion) {
+                return ["id" => (int)$criterion->id, "name" => $criterion->name,
+                    "maxscore" => $criterion->maxscore];
+            }, array_values(\mod_projectboard\criterion_service::all($activity))),
             "reporturl" => (new \moodle_url("/mod/projectboard/report.php", ["id" => $cm->id]))->out(false),
             "columnoptions" => array_map(static function($col) {
                 return ["id" => $col->id, "name" => $col->name];
@@ -244,7 +249,7 @@ final class board_data {
             "adddependency", "subtask", "history", "managecolumns", "columnname",
             "columncolour", "wiplimit", "addcolumn", "archivecolumn", "moveup", "movedown",
             "blocked", "late", "completed", "report", "filter", "search", "status",
-            "editcolumn", "transition",
+            "editcolumn", "transition", "criterionname", "maxscore", "overridelabel",
             "grade", "feedback", "managegrade", "sendreview", "approve", "reopen",
             "returnreview", "reviewcomment", "unassigned", "noevidence", "selectboard", "actions"];
         $strings = [];

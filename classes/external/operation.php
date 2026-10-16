@@ -130,6 +130,14 @@ final class operation extends external_api {
                 $changed = true;
                 $taskid = 0;
                 break;
+            case "criterion_create":
+                \mod_projectboard\criterion_service::create($activity, $cm, $data);
+                $changed = true;
+                break;
+            case "criterion_score":
+                \mod_projectboard\criterion_service::score($activity, $cm, $data);
+                $changed = true;
+                break;
             case "grade_save":
                 \mod_projectboard\grading_service::save($activity, $cm, $data);
                 $changed = true;
