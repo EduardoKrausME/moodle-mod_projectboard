@@ -288,7 +288,8 @@ define(["jquery", "core/ajax", "core/notification"], function ($, Ajax, Notifica
             } else if (event.target.matches("[data-check-toggle]")) {
                 const target = event.target;
                 request(app, "check_toggle", {
-                    taskid: Number(target.dataset.taskid), itemid: Number(target.dataset.checkToggle)
+                    taskid: Number(target.dataset.taskid), itemid: Number(target.dataset.checkToggle),
+                    done: target.checked ? 1 : 0
                 }).catch(() => { target.checked = !target.checked; });
             }
         });

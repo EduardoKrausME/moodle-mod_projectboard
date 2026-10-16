@@ -27,13 +27,20 @@ namespace mod_projectboard;
 defined("MOODLE_INTERNAL") || die();
 
 final class task_service {
-    private static function lock(int $boardid): \core\lock\lock {
+    public static function activity_lock(int $activityid): \core\lock\lock {
         $factory = \core\lock\lock_config::get_lock_factory("mod_projectboard");
-        $lock = $factory->get_lock("board_" . $boardid, 15);
+        $lock = $factory->get_lock("activity_" . $activityid, 15);
         if (!$lock) {
             throw new \moodle_exception("conflict", "projectboard");
         }
         return $lock;
+    }
+
+    private static function lock(int $boardid): \core\lock\lock {
+        global $DB;
+        $activityid = (int)$DB->get_field("projectboard_board", "projectboardid",
+            ["id" => $boardid], MUST_EXIST);
+        return self::activity_lock($activityid);
     }
 
     private static function column(\stdClass $activity, int $columnid): \stdClass {
@@ -201,15 +208,22 @@ final class task_service {
         foreach ($userids as $userid) {
             access_manager::require_assignee($userid, $board, $activity, $cm);
         }
-        $transaction = $DB->start_delegated_transaction();
-        $existing = $DB->get_fieldset_select("projectboard_assignee", "userid", "taskid = ?", [$task->id]);
-        $DB->delete_records("projectboard_assignee", ["taskid" => $task->id]);
-        foreach ($userids as $userid) {
-            $DB->insert_record("projectboard_assignee", (object)["taskid" => $task->id, "userid" => $userid]);
+        $lock = self::lock((int)$task->boardid);
+        try {
+            $transaction = $DB->start_delegated_transaction();
+            $task = access_manager::require_task((int)$task->id, $activity, $cm, true);
+            self::require_version($task, $data);
+            $existing = $DB->get_fieldset_select("projectboard_assignee", "userid", "taskid = ?", [$task->id]);
+            $DB->delete_records("projectboard_assignee", ["taskid" => $task->id]);
+            foreach ($userids as $userid) {
+                $DB->insert_record("projectboard_assignee", (object)["taskid" => $task->id, "userid" => $userid]);
+            }
+            history_service::record((int)$task->id, "assignees_changed", $existing, $userids);
+            $DB->set_field("projectboard_task", "version", $task->version + 1, ["id" => $task->id]);
+            $transaction->allow_commit();
+        } finally {
+            $lock->release();
         }
-        history_service::record((int)$task->id, "assignees_changed", $existing, $userids);
-        $DB->set_field("projectboard_task", "version", $task->version + 1, ["id" => $task->id]);
-        $transaction->allow_commit();
         foreach (array_diff($userids, array_map("intval", $existing)) as $userid) {
             notification_service::send($activity, $task, (int)$userid, "assignment", "assigned");
         }

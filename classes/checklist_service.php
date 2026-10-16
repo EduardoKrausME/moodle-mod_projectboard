@@ -31,8 +31,10 @@ final class checklist_service {
         global $DB;
         $task = access_manager::require_task((int)($data["taskid"] ?? 0), $activity, $cm, true);
         access_manager::require_edit($task, $cm);
-        $transaction = $DB->start_delegated_transaction();
-        if ($action === "check_add") {
+        $lock = task_service::activity_lock((int)$activity->id);
+        try {
+            $transaction = $DB->start_delegated_transaction();
+            if ($action === "check_add") {
             $title = trim(clean_param($data["title"] ?? "", PARAM_TEXT));
             if (!$title) {
                 throw new \invalid_parameter_exception("Checklist title required");
@@ -54,7 +56,7 @@ final class checklist_service {
                 "id" => (int)($data["itemid"] ?? 0), "taskid" => $task->id
             ], "*", MUST_EXIST);
             if ($action === "check_toggle") {
-                $item->done = $item->done ? 0 : 1;
+                $item->done = !empty($data["done"]) ? 1 : 0;
             } else if ($action === "check_delete") {
                 $DB->delete_records("projectboard_check", ["id" => $item->id]);
                 history_service::record((int)$task->id, "check_deleted", $item->id);
@@ -78,7 +80,10 @@ final class checklist_service {
             $DB->update_record("projectboard_check", $item);
             history_service::record((int)$task->id, $action, null, $item->id);
         }
-        $transaction->allow_commit();
+            $transaction->allow_commit();
+        } finally {
+            $lock->release();
+        }
     }
 
     public static function progress(int $taskid): array {

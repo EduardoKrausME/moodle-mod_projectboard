@@ -32,13 +32,20 @@ final class dependency_service {
         $task = access_manager::require_task($taskid, $activity, $cm, true);
         access_manager::require_edit($task, $cm);
         $other = access_manager::require_task($dependsid, $activity, $cm);
-        if ($taskid === $dependsid || (int)$task->boardid !== (int)$other->boardid ||
-                self::reaches($dependsid, $taskid, [])) {
-            throw new \moodle_exception("cyclicdependency", "projectboard");
-        }
-        if (!$DB->record_exists("projectboard_dep", ["taskid" => $taskid, "dependsid" => $dependsid])) {
-            $DB->insert_record("projectboard_dep", (object)["taskid" => $taskid, "dependsid" => $dependsid]);
-            history_service::record($taskid, "dependency_added", null, $dependsid);
+        $lock = task_service::activity_lock((int)$activity->id);
+        try {
+            $transaction = $DB->start_delegated_transaction();
+            if ($taskid === $dependsid || (int)$task->boardid !== (int)$other->boardid ||
+                    self::reaches($dependsid, $taskid, [])) {
+                throw new \moodle_exception("cyclicdependency", "projectboard");
+            }
+            if (!$DB->record_exists("projectboard_dep", ["taskid" => $taskid, "dependsid" => $dependsid])) {
+                $DB->insert_record("projectboard_dep", (object)["taskid" => $taskid, "dependsid" => $dependsid]);
+                history_service::record($taskid, "dependency_added", null, $dependsid);
+            }
+            $transaction->allow_commit();
+        } finally {
+            $lock->release();
         }
     }
 
@@ -46,8 +53,13 @@ final class dependency_service {
         global $DB;
         $task = access_manager::require_task($taskid, $activity, $cm, true);
         access_manager::require_edit($task, $cm);
-        $DB->delete_records("projectboard_dep", ["taskid" => $taskid, "dependsid" => $dependsid]);
-        history_service::record($taskid, "dependency_removed", $dependsid);
+        $lock = task_service::activity_lock((int)$activity->id);
+        try {
+            $DB->delete_records("projectboard_dep", ["taskid" => $taskid, "dependsid" => $dependsid]);
+            history_service::record($taskid, "dependency_removed", $dependsid);
+        } finally {
+            $lock->release();
+        }
     }
 
     private static function reaches(int $current, int $target, array $visited): bool {

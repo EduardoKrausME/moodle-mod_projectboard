@@ -31,6 +31,7 @@
     {{#canassign}}
     <form data-form="task_assign">
         <input type="hidden" name="taskid" value="{{id}}">
+        <input type="hidden" name="version" value="{{version}}">
         <label>{{#strings}}{{assignees}}{{/strings}}<input class="form-control" name="userids" value="{{assigneeids}}"></label>
         <button class="btn btn-sm btn-outline-secondary" type="submit">{{#strings}}{{assign}}{{/strings}}</button>
     </form>

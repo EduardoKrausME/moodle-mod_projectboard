@@ -30,8 +30,10 @@ final class column_service {
     public static function execute(\stdClass $activity, \stdClass $cm, string $action, array $data): void {
         global $DB;
         access_manager::require_action("managecolumns", $cm);
-        $transaction = $DB->start_delegated_transaction();
-        if ($action === "column_create") {
+        $lock = task_service::activity_lock((int)$activity->id);
+        try {
+            $transaction = $DB->start_delegated_transaction();
+            if ($action === "column_create") {
             $name = trim(clean_param($data["name"] ?? "", PARAM_TEXT));
             if (!$name) {
                 throw new \invalid_parameter_exception("Column name required");
@@ -93,7 +95,10 @@ final class column_service {
                 throw new \invalid_parameter_exception("Invalid column operation");
             }
         }
-        $transaction->allow_commit();
+            $transaction->allow_commit();
+        } finally {
+            $lock->release();
+        }
     }
 
     private static function colour(string $colour): string {
