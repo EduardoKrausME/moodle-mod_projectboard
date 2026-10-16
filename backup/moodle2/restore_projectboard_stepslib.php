@@ -26,6 +26,8 @@ defined("MOODLE_INTERNAL") || die();
 
 class restore_projectboard_activity_structure_step extends restore_activity_structure_step {
     private $pendingdeps = [];
+    private $pendingparents = [];
+    private $pendingcomments = [];
 
     protected function define_structure() {
         $paths = [
@@ -71,6 +73,11 @@ class restore_projectboard_activity_structure_step extends restore_activity_stru
         $data = (object)$data;
         $oldid = $data->id;
         $data->projectboardid = $this->get_new_parentid("projectboard");
+        $data->fromcolumnid = $this->get_mappingid("column", (int)$data->fromcolumnid, 0);
+        $data->tocolumnid = $this->get_mappingid("column", (int)$data->tocolumnid, 0);
+        if (!$data->fromcolumnid || !$data->tocolumnid) {
+            return;
+        }
         $data->id = $DB->insert_record("projectboard_transition", $data);
         $this->set_mapping("transition", $oldid, $data->id);
     }
@@ -92,9 +99,13 @@ class restore_projectboard_activity_structure_step extends restore_activity_stru
         $oldid = $data->id;
         $data->boardid = $this->get_new_parentid("board");
         $data->columnid = $this->get_mappingid("column", (int)$data->columnid, 0);
-        $data->parentid = $this->get_mappingid("task", (int)$data->parentid, 0);
+        $oldparent = (int)$data->parentid;
+        $data->parentid = 0;
         $data->createdby = $this->get_mappingid("user", (int)$data->createdby, 0);
         $data->id = $DB->insert_record("projectboard_task", $data);
+        if ($oldparent) {
+            $this->pendingparents[] = [(int)$data->id, $oldparent];
+        }
         $this->set_mapping("task", $oldid, $data->id);
     }
 
@@ -128,9 +139,13 @@ class restore_projectboard_activity_structure_step extends restore_activity_stru
         $data = (object)$data;
         $oldid = $data->id;
         $data->taskid = $this->get_new_parentid("task");
-        $data->parentid = $this->get_mappingid("task", (int)$data->parentid, 0);
+        $oldparent = (int)$data->parentid;
+        $data->parentid = 0;
         $data->userid = $this->get_mappingid("user", (int)$data->userid, 0);
         $data->id = $DB->insert_record("projectboard_comment", $data);
+        if ($oldparent) {
+            $this->pendingcomments[] = [(int)$data->id, $oldparent];
+        }
         $this->set_mapping("comment", $oldid, $data->id, true);
     }
 
@@ -193,6 +208,18 @@ class restore_projectboard_activity_structure_step extends restore_activity_stru
 
     protected function after_execute() {
         global $DB;
+        foreach ($this->pendingparents as [$childid, $oldparentid]) {
+            $parentid = $this->get_mappingid("task", $oldparentid, 0);
+            if ($parentid) {
+                $DB->set_field("projectboard_task", "parentid", $parentid, ["id" => $childid]);
+            }
+        }
+        foreach ($this->pendingcomments as [$commentid, $oldparentid]) {
+            $parentid = $this->get_mappingid("comment", $oldparentid, 0);
+            if ($parentid) {
+                $DB->set_field("projectboard_comment", "parentid", $parentid, ["id" => $commentid]);
+            }
+        }
         foreach ($this->pendingdeps as [$taskid, $olddependsid]) {
             $dependsid = $this->get_mappingid("task", $olddependsid, 0);
             if ($taskid && $dependsid && $taskid !== $dependsid) {
@@ -203,9 +230,6 @@ class restore_projectboard_activity_structure_step extends restore_activity_stru
         }
         $this->add_related_files("mod_projectboard", "evidence", "evidence");
         $this->add_related_files("mod_projectboard", "commentattachment", "comment");
-        $activity = $DB->get_record("projectboard", ["id" => $this->get_new_parentid("projectboard")]);
-        if ($activity) {
-            \mod_projectboard\grading_service::sync($activity);
-        }
+
     }
 }
