@@ -5,7 +5,7 @@
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" />
         <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
-        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="" />
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" />
         <FIELD NAME="intro" TYPE="text" />
         <FIELD NAME="introformat" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="1" />
         <FIELD NAME="objective" TYPE="text" />
@@ -44,7 +44,7 @@
         <FIELD NAME="projectboardid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
         <FIELD NAME="owneruserid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
         <FIELD NAME="groupid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
-        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="" />
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" />
         <FIELD NAME="timecreated" TYPE="int" LENGTH="20" NOTNULL="true" DEFAULT="0" />
         <FIELD NAME="timemodified" TYPE="int" LENGTH="20" NOTNULL="true" DEFAULT="0" />
       </FIELDS>
@@ -60,7 +60,7 @@
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" />
         <FIELD NAME="projectboardid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
-        <FIELD NAME="name" TYPE="char" LENGTH="120" NOTNULL="true" DEFAULT="" />
+        <FIELD NAME="name" TYPE="char" LENGTH="120" NOTNULL="true" />
         <FIELD NAME="colour" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="#64748b" />
         <FIELD NAME="sortorder" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
         <FIELD NAME="wiplimit" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
@@ -102,12 +102,12 @@
         <FIELD NAME="boardid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
         <FIELD NAME="columnid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
         <FIELD NAME="parentid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
-        <FIELD NAME="title" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="" />
+        <FIELD NAME="title" TYPE="char" LENGTH="255" NOTNULL="true" />
         <FIELD NAME="description" TYPE="text" />
         <FIELD NAME="descriptionformat" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="1" />
         <FIELD NAME="createdby" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
         <FIELD NAME="priority" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="normal" />
-        <FIELD NAME="tags" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="" />
+        <FIELD NAME="tags" TYPE="char" LENGTH="255" NOTNULL="true" />
         <FIELD NAME="startdate" TYPE="int" LENGTH="20" NOTNULL="true" DEFAULT="0" />
         <FIELD NAME="duedate" TYPE="int" LENGTH="20" NOTNULL="true" DEFAULT="0" />
         <FIELD NAME="estimate" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
@@ -147,7 +147,7 @@
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" />
         <FIELD NAME="taskid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
-        <FIELD NAME="title" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="" />
+        <FIELD NAME="title" TYPE="char" LENGTH="255" NOTNULL="true" />
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
         <FIELD NAME="done" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
         <FIELD NAME="required" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="1" />
@@ -220,7 +220,7 @@
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" />
         <FIELD NAME="taskid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
-        <FIELD NAME="action" TYPE="char" LENGTH="60" NOTNULL="true" DEFAULT="" />
+        <FIELD NAME="action" TYPE="char" LENGTH="60" NOTNULL="true" />
         <FIELD NAME="oldvalue" TYPE="text" />
         <FIELD NAME="newvalue" TYPE="text" />
         <FIELD NAME="timecreated" TYPE="int" LENGTH="20" NOTNULL="true" DEFAULT="0" />
@@ -261,8 +261,8 @@
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" />
         <FIELD NAME="taskid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
-        <FIELD NAME="eventname" TYPE="char" LENGTH="40" NOTNULL="true" DEFAULT="" />
-        <FIELD NAME="periodkey" TYPE="char" LENGTH="60" NOTNULL="true" DEFAULT="" />
+        <FIELD NAME="eventname" TYPE="char" LENGTH="40" NOTNULL="true" />
+        <FIELD NAME="periodkey" TYPE="char" LENGTH="60" NOTNULL="true" />
         <FIELD NAME="timecreated" TYPE="int" LENGTH="20" NOTNULL="true" DEFAULT="0" />
       </FIELDS>
       <KEYS>
@@ -277,7 +277,7 @@
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" />
         <FIELD NAME="projectboardid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
-        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="" />
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" />
         <FIELD NAME="maxscore" TYPE="number" LENGTH="10" DECIMALS="5" NOTNULL="true" DEFAULT="100" />
         <FIELD NAME="sortorder" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
       </FIELDS>
