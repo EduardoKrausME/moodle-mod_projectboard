@@ -27,7 +27,6 @@
             <button class="btn btn-outline-danger" type="button" data-task-archive="{{id}}">{{#strings}}{{archive}}{{/strings}}</button>
         </div>
     </form>
-    {{^canassign}}{{/canassign}}
     {{/canedit}}
     {{#canassign}}
     <form data-form="task_assign">
@@ -54,7 +53,7 @@
     </section>
     <section class="projectboard-details-section">
         <h4>{{#strings}}{{adddependency}}{{/strings}}</h4>
-        <ul>{{#dependencies}}<li>#{{id}} — {{title}} {{#canedit}}<button type="button" data-dep-delete="{{id}}" data-taskid="{{../../id}}">×</button>{{/canedit}}</li>{{/dependencies}}</ul>
+        <ul>{{#dependencies}}<li>#{{id}} — {{title}} {{#canedit}}<button type="button" data-dep-delete="{{id}}" data-taskid="{{taskid}}">×</button>{{/canedit}}</li>{{/dependencies}}</ul>
         {{#canedit}}<form data-form="dep_add"><input type="hidden" name="taskid" value="{{id}}">
             <label>{{#strings}}{{tasktitle}}{{/strings}}<input class="form-control" name="dependsid" type="number" min="1" required></label>
             <button class="btn btn-sm btn-outline-secondary" type="submit">{{#strings}}{{adddependency}}{{/strings}}</button>

@@ -177,7 +177,7 @@ final class board_data {
             $dependson = $DB->get_record("projectboard_task", ["id" => $dependency->dependsid], "id, title");
             if ($dependson) {
                 $dependencies[] = ["id" => (int)$dependson->id, "title" => $dependson->title,
-                    "canedit" => $canedit];
+                    "taskid" => (int)$task->id, "canedit" => $canedit];
             }
         }
         $history = [];
@@ -199,8 +199,8 @@ final class board_data {
             "id" => (int)$task->id, "title" => $task->title,
             "description" => $task->description,
             "priority" => $task->priority, "tags" => $task->tags,
-            "startdate" => $task->startdate ? date("Y-m-d\TH:i", $task->startdate) : "",
-            "duedate" => $task->duedate ? date("Y-m-d\TH:i", $task->duedate) : "",
+            "startdate" => $task->startdate ? userdate($task->startdate, "%Y-%m-%dT%H:%M") : "",
+            "duedate" => $task->duedate ? userdate($task->duedate, "%Y-%m-%dT%H:%M") : "",
             "estimate" => (int)$task->estimate, "version" => (int)$task->version,
             "boardid" => (int)$task->boardid,
             "canedit" => $canedit, "cancomment" => $cancomment, "canreview" => $canreview,

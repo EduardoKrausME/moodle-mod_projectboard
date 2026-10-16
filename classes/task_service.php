@@ -238,6 +238,7 @@ final class task_service {
                 self::assert_capacity($activity, $target, (int)$task->boardid);
             }
             if ($target->isdone) {
+                access_manager::require_action("review", $cm);
                 self::assert_done($activity, $task);
             }
             $task->columnid = $target->id;
@@ -278,15 +279,24 @@ final class task_service {
         global $DB;
         $task = access_manager::require_task((int)($data["taskid"] ?? 0), $activity, $cm, true);
         access_manager::require_edit($task, $cm);
-        self::require_version($task, $data);
-        if ($DB->record_exists("projectboard_task", ["parentid" => $task->id, "archived" => 0])) {
-            throw new \moodle_exception("invalidaccess", "projectboard");
+        $lock = self::lock((int)$task->boardid);
+        try {
+            $transaction = $DB->start_delegated_transaction();
+            $task = access_manager::require_task((int)$task->id, $activity, $cm, true);
+            self::require_version($task, $data);
+            if ($DB->record_exists("projectboard_task", ["parentid" => $task->id, "archived" => 0])) {
+                throw new \moodle_exception("invalidaccess", "projectboard");
+            }
+            $task->archived = 1;
+            $task->version++;
+            $task->timemodified = time();
+            $DB->update_record("projectboard_task", $task);
+            self::reorder((int)$task->boardid, (int)$task->columnid);
+            history_service::record((int)$task->id, "archived");
+            $transaction->allow_commit();
+        } finally {
+            $lock->release();
         }
-        $task->archived = 1;
-        $task->version++;
-        $task->timemodified = time();
-        $DB->update_record("projectboard_task", $task);
-        history_service::record((int)$task->id, "archived");
     }
 
     public static function duplicate(\stdClass $activity, \stdClass $cm, array $data): int {

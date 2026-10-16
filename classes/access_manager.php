@@ -120,8 +120,7 @@ final class access_manager {
     public static function require_assignee(int $userid, \stdClass $board, \stdClass $activity, \stdClass $cm): void {
         global $DB;
         $context = self::context($cm);
-        if (!$DB->record_exists("user_enrolments", ["userid" => $userid]) ||
-                !is_enrolled($context, $userid, "mod/projectboard:view", true)) {
+        if (!is_enrolled($context, $userid, "mod/projectboard:view", true)) {
             throw new \moodle_exception("invalidaccess", "projectboard");
         }
         if ($activity->workmode === "individual" && (int)$board->owneruserid !== $userid) {

@@ -27,33 +27,25 @@ defined("MOODLE_INTERNAL") || die();
 require_once("../../config.php");
 
 $id = required_param("id", PARAM_INT);
-$cm = get_coursemodule_from_id("projectboard", $id, 0, false, MUST_EXIST);
-$activity = $DB->get_record("projectboard", ["id" => $cm->instance], "*", MUST_EXIST);
-\mod_projectboard\access_manager::require_view($cm);
-$PAGE->set_url(new moodle_url("/mod/projectboard/view.php", ["id" => $cm->id]));
-$PAGE->set_cm($cm);
-$PAGE->set_title(format_string($activity->name));
-$PAGE->set_heading(format_string($activity->name));
-$PAGE->set_context(\context_module::instance($cm->id));
-$PAGE->requires->css(new moodle_url("/mod/projectboard/styles.css"));
-$PAGE->requires->js_call_amd("mod_projectboard/board", "init", [(int)$cm->id]);
-$PAGE->requires->strings_for_js(["error", "loading", "conflict", "archive",
-    "cancel", "save", "operationfailed"], "projectboard");
-
-$boards = \mod_projectboard\board_service::available($activity, $cm);
-$requested = optional_param("boardid", 0, PARAM_INT);
-$board = null;
-foreach ($boards as $candidate) {
-    if (!$requested || $requested == $candidate->id) {
-        $board = $candidate;
-        break;
+$course = $DB->get_record("course", ["id" => $id], "*", MUST_EXIST);
+require_login($course);
+$PAGE->set_url(new moodle_url("/mod/projectboard/index.php", ["id" => $id]));
+$PAGE->set_title(get_string("modulenameplural", "projectboard"));
+$PAGE->set_heading($course->fullname);
+$PAGE->set_context(\context_course::instance($id));
+$modules = get_all_instances_in_course("projectboard", $course);
+$rows = [];
+foreach ($modules as $module) {
+    $cm = get_coursemodule_from_instance("projectboard", $module->id, $course->id);
+    if ($cm && has_capability("mod/projectboard:view", \context_module::instance($cm->id))) {
+        $rows[] = [
+            "name" => format_string($module->name),
+            "url" => (new moodle_url("/mod/projectboard/view.php", ["id" => $cm->id]))->out(false)
+        ];
     }
 }
-if (!$board && $requested) {
-    throw new moodle_exception("invalidaccess", "projectboard");
-}
-$view = \mod_projectboard\presentation\board_data::page($activity, $cm, $board, $boards);
-$PAGE->set_title($activity->name);
 echo $OUTPUT->header();
-echo $OUTPUT->render_from_template("mod_projectboard/page", $view);
+echo $OUTPUT->render_from_template("mod_projectboard/index", [
+    "title" => get_string("modulenameplural", "projectboard"), "modules" => $rows
+]);
 echo $OUTPUT->footer();

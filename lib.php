@@ -119,7 +119,10 @@ function projectboard_get_completion_state($course, $cm, $userid, $type) {
     global $DB;
     $activity = $DB->get_record("projectboard", ["id" => $cm->instance], "*", MUST_EXIST);
     $custom = \mod_projectboard\completion_service::completed($activity, $cm, (int)$userid);
-    return $type == COMPLETION_AND ? $custom : $custom;
+    $hascustom = (bool)($activity->completioncreated || $activity->completiondone ||
+        $activity->completionproject || $activity->completionchecklist ||
+        $activity->completiongraded || $activity->completionminscore);
+    return !$hascustom || $custom;
 }
 
 function projectboard_get_coursemodule_info($cm) {

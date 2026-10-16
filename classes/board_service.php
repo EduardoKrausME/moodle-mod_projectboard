@@ -70,19 +70,25 @@ final class board_service {
         if ($board = $DB->get_record("projectboard_board", $where)) {
             return $board;
         }
-        $transaction = $DB->start_delegated_transaction();
-        $board = (object)($where + [
-            "name" => $activity->name,
-            "timecreated" => time(),
-            "timemodified" => time()
-        ]);
-        try {
-            $board->id = $DB->insert_record("projectboard_board", $board);
-        } catch (\dml_write_exception $exception) {
-            $board = $DB->get_record("projectboard_board", $where, "*", MUST_EXIST);
+        $factory = \core\lock\lock_config::get_lock_factory("mod_projectboard");
+        $lock = $factory->get_lock("newboard_" . $activity->id . "_" . $userid . "_" . $groupid, 15);
+        if (!$lock) {
+            throw new \moodle_exception("conflict", "projectboard");
         }
-        $transaction->allow_commit();
-        return $board;
+        try {
+            if ($board = $DB->get_record("projectboard_board", $where)) {
+                return $board;
+            }
+            $board = (object)($where + [
+                "name" => $activity->name,
+                "timecreated" => time(),
+                "timemodified" => time()
+            ]);
+            $board->id = $DB->insert_record("projectboard_board", $board);
+            return $board;
+        } finally {
+            $lock->release();
+        }
     }
 
     public static function available(\stdClass $activity, \stdClass $cm): array {
