@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="mod/projectboard/db" VERSION="2026101500" COMMENT="Project Board module schema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd">
+  <TABLES>
+    <TABLE NAME="projectboard" COMMENT="projectboard storage">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" />
+        <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="" />
+        <FIELD NAME="intro" TYPE="text" />
+        <FIELD NAME="introformat" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="1" />
+        <FIELD NAME="objective" TYPE="text" />
+        <FIELD NAME="startdate" TYPE="int" LENGTH="20" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="enddate" TYPE="int" LENGTH="20" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="workmode" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="individual" />
+        <FIELD NAME="allowcreate" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="1" />
+        <FIELD NAME="allowmove" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="1" />
+        <FIELD NAME="allowassign" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="maxwip" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="requireevidence" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="grademode" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="none" />
+        <FIELD NAME="grade" TYPE="number" LENGTH="10" DECIMALS="5" NOTNULL="true" DEFAULT="100" />
+        <FIELD NAME="completioncreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="completiondone" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="completionproject" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="completionchecklist" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="completiongraded" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="completionminscore" TYPE="number" LENGTH="10" DECIMALS="5" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="showhistory" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="1" />
+        <FIELD NAME="notifications" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="1" />
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="20" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="20" NOTNULL="true" DEFAULT="0" />
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" />
+        <KEY NAME="course_fk" TYPE="foreign" FIELDS="course" REFTABLE="course" REFFIELDS="id" />
+      </KEYS>
+      <INDEXES>
+
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="projectboard_board" COMMENT="projectboard_board storage">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" />
+        <FIELD NAME="projectboardid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="owneruserid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="groupid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="" />
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="20" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="20" NOTNULL="true" DEFAULT="0" />
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" />
+        <KEY NAME="projectboardid_fk" TYPE="foreign" FIELDS="projectboardid" REFTABLE="projectboard" REFFIELDS="id" />
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="board_owner_u" UNIQUE="true" FIELDS="projectboardid, owneruserid, groupid" />
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="projectboard_column" COMMENT="projectboard_column storage">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" />
+        <FIELD NAME="projectboardid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="name" TYPE="char" LENGTH="120" NOTNULL="true" DEFAULT="" />
+        <FIELD NAME="colour" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="#64748b" />
+        <FIELD NAME="sortorder" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="wiplimit" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="archived" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="isdone" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="isreview" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="20" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="20" NOTNULL="true" DEFAULT="0" />
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" />
+        <KEY NAME="projectboardid_fk" TYPE="foreign" FIELDS="projectboardid" REFTABLE="projectboard" REFFIELDS="id" />
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="column_order" UNIQUE="false" FIELDS="projectboardid, sortorder" />
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="projectboard_transition" COMMENT="projectboard_transition storage">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" />
+        <FIELD NAME="projectboardid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="fromcolumnid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="tocolumnid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="allowed" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="1" />
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" />
+        <KEY NAME="projectboardid_fk" TYPE="foreign" FIELDS="projectboardid" REFTABLE="projectboard" REFFIELDS="id" />
+        <KEY NAME="fromcolumnid_fk" TYPE="foreign" FIELDS="fromcolumnid" REFTABLE="projectboard_column" REFFIELDS="id" />
+        <KEY NAME="tocolumnid_fk" TYPE="foreign" FIELDS="tocolumnid" REFTABLE="projectboard_column" REFFIELDS="id" />
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="trans_unique" UNIQUE="true" FIELDS="fromcolumnid, tocolumnid" />
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="projectboard_task" COMMENT="projectboard_task storage">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" />
+        <FIELD NAME="boardid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="columnid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="parentid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="title" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="" />
+        <FIELD NAME="description" TYPE="text" />
+        <FIELD NAME="descriptionformat" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="1" />
+        <FIELD NAME="createdby" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="priority" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="normal" />
+        <FIELD NAME="tags" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="" />
+        <FIELD NAME="startdate" TYPE="int" LENGTH="20" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="duedate" TYPE="int" LENGTH="20" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="estimate" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="sortorder" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="archived" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="version" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="1" />
+        <FIELD NAME="completedat" TYPE="int" LENGTH="20" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="20" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="20" NOTNULL="true" DEFAULT="0" />
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" />
+        <KEY NAME="boardid_fk" TYPE="foreign" FIELDS="boardid" REFTABLE="projectboard_board" REFFIELDS="id" />
+        <KEY NAME="columnid_fk" TYPE="foreign" FIELDS="columnid" REFTABLE="projectboard_column" REFFIELDS="id" />
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="task_order" UNIQUE="false" FIELDS="boardid, columnid, sortorder" />
+        <INDEX NAME="task_due" UNIQUE="false" FIELDS="duedate, archived" />
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="projectboard_assignee" COMMENT="projectboard_assignee storage">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" />
+        <FIELD NAME="taskid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" />
+        <KEY NAME="taskid_fk" TYPE="foreign" FIELDS="taskid" REFTABLE="projectboard_task" REFFIELDS="id" />
+        <KEY NAME="userid_fk" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id" />
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="assignee_unique" UNIQUE="true" FIELDS="taskid, userid" />
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="projectboard_check" COMMENT="projectboard_check storage">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" />
+        <FIELD NAME="taskid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="title" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="" />
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="done" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="required" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="1" />
+        <FIELD NAME="sortorder" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="duedate" TYPE="int" LENGTH="20" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="20" NOTNULL="true" DEFAULT="0" />
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" />
+        <KEY NAME="taskid_fk" TYPE="foreign" FIELDS="taskid" REFTABLE="projectboard_task" REFFIELDS="id" />
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="check_order" UNIQUE="false" FIELDS="taskid, sortorder" />
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="projectboard_dep" COMMENT="projectboard_dep storage">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" />
+        <FIELD NAME="taskid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="dependsid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" />
+        <KEY NAME="taskid_fk" TYPE="foreign" FIELDS="taskid" REFTABLE="projectboard_task" REFFIELDS="id" />
+        <KEY NAME="dependsid_fk" TYPE="foreign" FIELDS="dependsid" REFTABLE="projectboard_task" REFFIELDS="id" />
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="dep_unique" UNIQUE="true" FIELDS="taskid, dependsid" />
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="projectboard_comment" COMMENT="projectboard_comment storage">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" />
+        <FIELD NAME="taskid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="parentid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="content" TYPE="text" />
+        <FIELD NAME="format" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="1" />
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="20" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="20" NOTNULL="true" DEFAULT="0" />
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" />
+        <KEY NAME="taskid_fk" TYPE="foreign" FIELDS="taskid" REFTABLE="projectboard_task" REFFIELDS="id" />
+        <KEY NAME="userid_fk" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id" />
+      </KEYS>
+      <INDEXES>
+
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="projectboard_evidence" COMMENT="projectboard_evidence storage">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" />
+        <FIELD NAME="taskid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="description" TYPE="text" />
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="20" NOTNULL="true" DEFAULT="0" />
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" />
+        <KEY NAME="taskid_fk" TYPE="foreign" FIELDS="taskid" REFTABLE="projectboard_task" REFFIELDS="id" />
+        <KEY NAME="userid_fk" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id" />
+      </KEYS>
+      <INDEXES>
+
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="projectboard_history" COMMENT="projectboard_history storage">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" />
+        <FIELD NAME="taskid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="action" TYPE="char" LENGTH="60" NOTNULL="true" DEFAULT="" />
+        <FIELD NAME="oldvalue" TYPE="text" />
+        <FIELD NAME="newvalue" TYPE="text" />
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="20" NOTNULL="true" DEFAULT="0" />
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" />
+        <KEY NAME="taskid_fk" TYPE="foreign" FIELDS="taskid" REFTABLE="projectboard_task" REFFIELDS="id" />
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="history_task" UNIQUE="false" FIELDS="taskid, timecreated" />
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="projectboard_grade" COMMENT="projectboard_grade storage">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" />
+        <FIELD NAME="projectboardid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="boardid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="grade" TYPE="number" LENGTH="10" DECIMALS="5" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="feedback" TYPE="text" />
+        <FIELD NAME="feedbackformat" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="1" />
+        <FIELD NAME="gradedby" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="20" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="20" NOTNULL="true" DEFAULT="0" />
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" />
+        <KEY NAME="projectboardid_fk" TYPE="foreign" FIELDS="projectboardid" REFTABLE="projectboard" REFFIELDS="id" />
+        <KEY NAME="boardid_fk" TYPE="foreign" FIELDS="boardid" REFTABLE="projectboard_board" REFFIELDS="id" />
+        <KEY NAME="userid_fk" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id" />
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="grade_unique" UNIQUE="true" FIELDS="projectboardid, userid" />
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="projectboard_notice" COMMENT="projectboard_notice storage">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" />
+        <FIELD NAME="taskid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="eventname" TYPE="char" LENGTH="40" NOTNULL="true" DEFAULT="" />
+        <FIELD NAME="periodkey" TYPE="char" LENGTH="60" NOTNULL="true" DEFAULT="" />
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="20" NOTNULL="true" DEFAULT="0" />
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" />
+        <KEY NAME="taskid_fk" TYPE="foreign" FIELDS="taskid" REFTABLE="projectboard_task" REFFIELDS="id" />
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="notice_unique" UNIQUE="true" FIELDS="taskid, userid, eventname, periodkey" />
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="projectboard_criterion" COMMENT="projectboard_criterion storage">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" />
+        <FIELD NAME="projectboardid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="" />
+        <FIELD NAME="maxscore" TYPE="number" LENGTH="10" DECIMALS="5" NOTNULL="true" DEFAULT="100" />
+        <FIELD NAME="sortorder" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" />
+        <KEY NAME="projectboardid_fk" TYPE="foreign" FIELDS="projectboardid" REFTABLE="projectboard" REFFIELDS="id" />
+      </KEYS>
+      <INDEXES>
+
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="projectboard_score" COMMENT="projectboard_score storage">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" />
+        <FIELD NAME="criterionid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="boardid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="score" TYPE="number" LENGTH="10" DECIMALS="5" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="gradedby" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" />
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="20" NOTNULL="true" DEFAULT="0" />
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" />
+        <KEY NAME="criterionid_fk" TYPE="foreign" FIELDS="criterionid" REFTABLE="projectboard_criterion" REFFIELDS="id" />
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="score_unique" UNIQUE="true" FIELDS="criterionid, userid" />
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>
