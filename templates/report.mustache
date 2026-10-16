@@ -1,0 +1,26 @@
+<main class="projectboard-report">
+    <h2>{{title}}</h2>
+    <form method="get" class="form-inline mb-4">
+        <input type="hidden" name="id" value="{{cmid}}">
+        <label>{{#strings}}{{search}}{{/strings}} <input name="search" class="form-control" value="{{search}}"></label>
+        <label>{{#strings}}{{priority}}{{/strings}} <select name="priority" class="form-control">
+            <option value="">{{#str}}all, mod_projectboard{{/str}}</option>
+            <option value="low">{{#str}}low, mod_projectboard{{/str}}</option>
+            <option value="normal">{{#str}}normal, mod_projectboard{{/str}}</option>
+            <option value="high">{{#str}}high, mod_projectboard{{/str}}</option>
+            <option value="urgent">{{#str}}urgent, mod_projectboard{{/str}}</option>
+        </select></label>
+        <label>{{#strings}}{{status}}{{/strings}} <input class="form-control" name="status" value="{{status}}"></label>
+        <button type="submit" class="btn btn-primary">{{#strings}}{{filter}}{{/strings}}</button>
+    </form>
+    <p><a href="{{exporturl}}" class="btn btn-outline-primary">{{#strings}}{{exportcsv}}{{/strings}}</a>
+    <a href="{{boardurl}}" class="btn btn-secondary">{{#strings}}{{board}}{{/strings}}</a></p>
+    <div class="table-responsive"><table class="table table-striped">
+        <thead><tr><th>{{#strings}}{{board}}{{/strings}}</th><th>{{#strings}}{{taskid}}{{/strings}}</th>
+            <th>{{#strings}}{{tasktitle}}{{/strings}}</th><th>{{#strings}}{{status}}{{/strings}}</th>
+            <th>{{#strings}}{{priority}}{{/strings}}</th><th>{{#strings}}{{duedate}}{{/strings}}</th>
+            <th>{{#strings}}{{assignees}}{{/strings}}</th><th>{{#strings}}{{late}}{{/strings}}</th></tr></thead>
+        <tbody>{{#rows}}<tr><td>{{board}}</td><td>{{taskid}}</td><td>{{title}}</td><td>{{status}}</td>
+            <td>{{priority}}</td><td>{{duedate}}</td><td>{{assignees}}</td><td>{{overdue}}</td></tr>{{/rows}}</tbody>
+    </table></div>
+</main>
