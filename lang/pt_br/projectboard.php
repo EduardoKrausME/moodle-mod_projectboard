@@ -181,3 +181,5 @@ $string["workmode"] = "Modo de colaboração";
 $string["criterionname"] = "Critério de avaliação";
 $string["maxscore"] = "Pontuação máxima do critério";
 $string["overridelabel"] = "Sobrescrever nota individualmente";
+
+$string["commentwithfiles"] = "Escrever comentário com anexos";

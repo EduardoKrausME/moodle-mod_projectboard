@@ -92,9 +92,11 @@
         <h4>{{#strings}}{{comment}}{{/strings}}</h4>
         {{#comments}}<article class="projectboard-comment"><strong>{{author}}</strong> <time>{{when}}</time>
             <div>{{{content}}}</div>
-            {{#cancomment}}<button type="button" class="btn btn-link btn-sm" data-reply-to="{{id}}">↳ {{#strings}}{{comment}}{{/strings}}</button>{{/cancomment}}
+            {{#files}}<p><a href="{{url}}">{{filename}}</a></p>{{/files}}
+            {{#cancomment}}<a href="{{replyurl}}">{{#strings}}{{commentwithfiles}}{{/strings}}</a> <button type="button" class="btn btn-link btn-sm" data-reply-to="{{id}}">↳ {{#strings}}{{comment}}{{/strings}}</button>{{/cancomment}}
         </article>{{/comments}}
-        {{#cancomment}}<form data-form="comment_add">
+        {{#cancomment}}<p><a href="{{commenturl}}" class="btn btn-outline-secondary btn-sm">{{#strings}}{{commentwithfiles}}{{/strings}}</a></p>
+        <form data-form="comment_add">
             <input name="taskid" value="{{id}}" type="hidden"><input name="parentid" type="hidden" value="0" data-reply-id>
             <textarea name="content" class="form-control" rows="3" required aria-label="{{#strings}}{{comment}}{{/strings}}"></textarea>
             <button class="btn btn-primary btn-sm" type="submit">{{#strings}}{{addcomment}}{{/strings}}</button>

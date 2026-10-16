@@ -168,8 +168,19 @@ final class board_data {
             "timecreated ASC, id ASC");
         foreach ($entries as $entry) {
             $author = $DB->get_record("user", ["id" => $entry->userid], "id, firstname, lastname");
+            $commentfiles = [];
+            foreach (get_file_storage()->get_area_files($context->id, "mod_projectboard",
+                    "commentattachment", $entry->id, "id", false) as $file) {
+                $url = \moodle_url::make_pluginfile_url($context->id, "mod_projectboard",
+                    "commentattachment", $entry->id, $file->get_filepath(), $file->get_filename());
+                $commentfiles[] = ["filename" => $file->get_filename(), "url" => $url->out(false)];
+            }
             $comments[] = [
                 "id" => (int)$entry->id, "parentid" => (int)$entry->parentid,
+                "files" => $commentfiles,
+                "replyurl" => (new \moodle_url("/mod/projectboard/comment.php", [
+                    "id" => $cm->id, "taskid" => $task->id, "parentid" => $entry->id
+                ]))->out(false),
                 "author" => $author ? fullname($author) : "",
                 "content" => format_text($entry->content, $entry->format, ["context" => $context]),
                 "when" => userdate($entry->timecreated)
@@ -235,6 +246,9 @@ final class board_data {
             "comments" => $comments, "evidences" => $evidences,
             "dependencies" => $dependencies, "blocked" => !empty($blocked),
             "assigneeids" => implode(",", $users),
+            "commenturl" => (new \moodle_url("/mod/projectboard/comment.php", [
+                "id" => $cm->id, "taskid" => $task->id
+            ]))->out(false),
             "evidenceurl" => (new \moodle_url("/mod/projectboard/evidence.php", [
                 "id" => $cm->id, "taskid" => $task->id
             ]))->out(false),
@@ -254,7 +268,8 @@ final class board_data {
             "blocked", "late", "completed", "report", "filter", "search", "status",
             "editcolumn", "transition", "criterionname", "maxscore", "overridelabel",
             "grade", "feedback", "managegrade", "sendreview", "approve", "reopen",
-            "returnreview", "reviewcomment", "unassigned", "noevidence", "selectboard", "actions"];
+            "returnreview", "reviewcomment", "unassigned", "noevidence", "selectboard", "actions",
+            "commentwithfiles"];
         $strings = [];
         foreach ($keys as $key) {
             $strings[$key] = get_string($key, "projectboard");

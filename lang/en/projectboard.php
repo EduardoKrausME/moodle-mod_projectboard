@@ -181,3 +181,5 @@ $string["workmode"] = "Collaboration mode";
 $string["criterionname"] = "Grading criterion";
 $string["maxscore"] = "Maximum criterion score";
 $string["overridelabel"] = "Individual grade override";
+
+$string["commentwithfiles"] = "Write a comment with attachments";

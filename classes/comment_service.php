@@ -27,11 +27,14 @@ namespace mod_projectboard;
 defined("MOODLE_INTERNAL") || die();
 
 final class comment_service {
-    public static function add(\stdClass $activity, \stdClass $cm, array $data): void {
+    public static function add(\stdClass $activity, \stdClass $cm, array $data): int {
         global $DB, $USER;
         $task = access_manager::require_task((int)($data["taskid"] ?? 0), $activity, $cm, true);
         access_manager::require_action("comment", $cm);
-        $content = trim(clean_param($data["content"] ?? "", PARAM_TEXT));
+        $format = (int)($data["format"] ?? FORMAT_PLAIN);
+        $format = $format === FORMAT_HTML ? FORMAT_HTML : FORMAT_PLAIN;
+        $content = trim(clean_param($data["content"] ?? "",
+            $format === FORMAT_HTML ? PARAM_CLEANHTML : PARAM_TEXT));
         if (!$content) {
             throw new \invalid_parameter_exception("Empty comment");
         }
@@ -41,10 +44,11 @@ final class comment_service {
         }
         $id = $DB->insert_record("projectboard_comment", (object)[
             "taskid" => $task->id, "parentid" => $parentid, "userid" => $USER->id,
-            "content" => $content, "format" => FORMAT_PLAIN,
+            "content" => $content, "format" => $format,
             "timecreated" => time(), "timemodified" => time()
         ]);
         history_service::record((int)$task->id, "comment_added", null, $id);
         notification_service::task_event($activity, $task, "comment", $USER->id);
+        return (int)$id;
     }
 }
