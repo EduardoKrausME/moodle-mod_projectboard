@@ -83,7 +83,7 @@ final class access_manager {
 
     public static function require_board(int $boardid, \stdClass $activity, \stdClass $cm, bool $write = false): \stdClass {
         global $DB;
-        $board = $DB->get_record("projectboard_board", ["id" => $boardid], MUST_EXIST);
+        $board = $DB->get_record("projectboard_board", ["id" => $boardid], "*", MUST_EXIST);
         if (!self::can_access_board($board, $activity, $cm, $write)) {
             throw new \required_capability_exception(self::context($cm), "mod/projectboard:view", CAP_ALLOW, "nopermissions");
         }

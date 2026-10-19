@@ -21,7 +21,8 @@ Feature: Students manage their own Project Board
   @javascript
   Scenario: A learner views their project board
     Given I log in as "learner1"
-    And I am on the "Academic project" "mod_projectboard > View" page
+    And I am on the "PROJECT101" course page
+    And I follow "Academic project"
     Then I should see "Backlog"
     And I should see "To do"
     And I should see "In progress"

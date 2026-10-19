@@ -25,6 +25,14 @@
 defined("MOODLE_INTERNAL") || die();
 
 $capabilities = [
+    "mod/projectboard:addinstance" => [
+        "captype" => "write",
+        "contextlevel" => CONTEXT_COURSE,
+        "archetypes" => [
+            "editingteacher" => CAP_ALLOW,
+            "manager" => CAP_ALLOW,
+        ],
+    ],
     "mod/projectboard:view" => [
         "captype" => "read",
         "contextlevel" => CONTEXT_MODULE,

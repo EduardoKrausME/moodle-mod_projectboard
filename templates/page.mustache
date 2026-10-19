@@ -9,7 +9,7 @@
             <select id="projectboard-switch" data-board-select>
                 {{#boards}}<option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>{{/boards}}
             </select>
-            {{#canreports}}<a class="btn btn-outline-secondary" href="{{reporturl}}">{{#strings}}{{report}}{{/strings}}</a>{{/canreports}}
+            {{#canreports}}<a class="btn btn-outline-secondary" href="{{{reporturl}}}">{{#strings}}{{report}}{{/strings}}</a>{{/canreports}}
             {{#cangrade}}<button class="btn btn-outline-secondary" type="button" data-open-grade>{{#strings}}{{managegrade}}{{/strings}}</button>{{/cangrade}}
             {{#canmanagecolumns}}<button class="btn btn-outline-secondary" type="button" data-open-column>{{#strings}}{{addcolumn}}{{/strings}}</button>{{/canmanagecolumns}}
             {{#canadd}}<button class="btn btn-primary" type="button" data-open-create>{{#strings}}{{addtask}}{{/strings}}</button>{{/canadd}}
