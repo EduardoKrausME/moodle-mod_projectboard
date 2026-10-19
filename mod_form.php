@@ -8,11 +8,11 @@
 //
 // Moodle is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * Course activity configuration form.
@@ -22,11 +22,18 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this entry point.
 defined("MOODLE_INTERNAL") || die();
 
 require_once($CFG->dirroot . "/course/moodleform_mod.php");
 
+/**
+ * Provides mod projectboard mod form functionality.
+ */
 class mod_projectboard_mod_form extends moodleform_mod {
+    /**
+     * Definition for the Project Board activity.
+     */
     public function definition() {
         $mform = $this->_form;
         $mform->addElement("header", "general", get_string("general", "form"));
@@ -44,7 +51,7 @@ class mod_projectboard_mod_form extends moodleform_mod {
         $mform->addElement("select", "workmode", get_string("workmode", "projectboard"), [
             "individual" => get_string("individual", "projectboard"),
             "groups" => get_string("groups", "projectboard"),
-            "collective" => get_string("collective", "projectboard")
+            "collective" => get_string("collective", "projectboard"),
         ]);
         $mform->addElement("advcheckbox", "allowcreate", get_string("allowcreate", "projectboard"));
         $mform->addElement("advcheckbox", "allowmove", get_string("allowmove", "projectboard"));
@@ -64,7 +71,7 @@ class mod_projectboard_mod_form extends moodleform_mod {
             "none" => get_string("none", "projectboard"),
             "project" => get_string("project", "projectboard"),
             "individual" => get_string("individualgrade", "projectboard"),
-            "criteria" => get_string("criteria", "projectboard")
+            "criteria" => get_string("criteria", "projectboard"),
         ]);
         $mform->addElement("text", "grade", get_string("grade", "projectboard"), ["size" => 8]);
         $mform->setType("grade", PARAM_FLOAT);
@@ -74,6 +81,9 @@ class mod_projectboard_mod_form extends moodleform_mod {
         $this->add_action_buttons();
     }
 
+    /**
+     * Add completion rules for the Project Board activity.
+     */
     public function add_completion_rules() {
         $mform = $this->_form;
         foreach (["completioncreated", "completiondone"] as $field) {
@@ -92,12 +102,18 @@ class mod_projectboard_mod_form extends moodleform_mod {
             "completionchecklist", "completiongraded", "completionminscore"];
     }
 
+    /**
+     * Completion rule enabled for the Project Board activity.
+     */
     public function completion_rule_enabled($data) {
         return !empty($data["completioncreated"]) || !empty($data["completiondone"]) ||
             !empty($data["completionproject"]) || !empty($data["completionchecklist"]) ||
             !empty($data["completiongraded"]) || !empty($data["completionminscore"]);
     }
 
+    /**
+     * Validation for the Project Board activity.
+     */
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);
         if (!empty($data["startdate"]) && !empty($data["enddate"]) &&

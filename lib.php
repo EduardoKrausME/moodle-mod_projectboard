@@ -8,11 +8,11 @@
 //
 // Moodle is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * Required Moodle activity callbacks.
@@ -22,8 +22,12 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this entry point.
 defined("MOODLE_INTERNAL") || die();
 
+/**
+ * Projectboard supports for the Project Board activity.
+ */
 function projectboard_supports($feature) {
     switch ($feature) {
         case FEATURE_MOD_INTRO:
@@ -40,6 +44,9 @@ function projectboard_supports($feature) {
     }
 }
 
+/**
+ * Projectboard add instance for the Project Board activity.
+ */
 function projectboard_add_instance($data, $mform = null) {
     global $DB;
     $data->timecreated = time();
@@ -51,6 +58,9 @@ function projectboard_add_instance($data, $mform = null) {
     return $id;
 }
 
+/**
+ * Projectboard update instance for the Project Board activity.
+ */
 function projectboard_update_instance($data, $mform = null) {
     global $DB;
     $data->id = $data->instance;
@@ -60,6 +70,9 @@ function projectboard_update_instance($data, $mform = null) {
     return true;
 }
 
+/**
+ * Projectboard delete instance for the Project Board activity.
+ */
 function projectboard_delete_instance($id) {
     global $DB;
     if (!$activity = $DB->get_record("projectboard", ["id" => $id])) {
@@ -107,14 +120,23 @@ function projectboard_delete_instance($id) {
     return true;
 }
 
+/**
+ * Projectboard grade item update for the Project Board activity.
+ */
 function projectboard_grade_item_update($activity, $grades = null) {
     \mod_projectboard\grading_service::update_item($activity, $grades);
 }
 
+/**
+ * Projectboard update grades for the Project Board activity.
+ */
 function projectboard_update_grades($activity, $userid = 0, $nullifnone = true) {
     \mod_projectboard\grading_service::sync($activity, (int)$userid);
 }
 
+/**
+ * Projectboard get completion state for the Project Board activity.
+ */
 function projectboard_get_completion_state($course, $cm, $userid, $type) {
     global $DB;
     $activity = $DB->get_record("projectboard", ["id" => $cm->instance], "*", MUST_EXIST);
@@ -125,6 +147,9 @@ function projectboard_get_completion_state($course, $cm, $userid, $type) {
     return $hascustom ? $custom : $type;
 }
 
+/**
+ * Projectboard get coursemodule info for the Project Board activity.
+ */
 function projectboard_get_coursemodule_info($cm) {
     global $DB;
     $activity = $DB->get_record("projectboard", ["id" => $cm->instance], "id, name, intro, introformat");
@@ -145,6 +170,9 @@ function projectboard_get_coursemodule_info($cm) {
     return $info;
 }
 
+/**
+ * Projectboard pluginfile for the Project Board activity.
+ */
 function projectboard_pluginfile($course, $cm, $context, $filearea, $args,
         $forcedownload, array $options = []) {
     global $DB;

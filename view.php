@@ -8,11 +8,11 @@
 //
 // Moodle is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * Project Board course module controller.
@@ -22,14 +22,13 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined("MOODLE_INTERNAL") || die();
-
 require_once("../../config.php");
 require_once($CFG->dirroot . "/mod/projectboard/lib.php");
 
 $id = required_param("id", PARAM_INT);
 $cm = get_coursemodule_from_id("projectboard", $id, 0, false, MUST_EXIST);
 $activity = $DB->get_record("projectboard", ["id" => $cm->instance], "*", MUST_EXIST);
+require_login($cm->course, false, $cm);
 \mod_projectboard\access_manager::require_view($cm);
 $context = \context_module::instance($cm->id);
 $PAGE->set_url(new moodle_url("/mod/projectboard/view.php", ["id" => $id]));
@@ -44,7 +43,7 @@ $PAGE->requires->strings_for_js(["error", "loading", "conflict", "archive",
 $completion = new completion_info($DB->get_record("course", ["id" => $activity->course]));
 $completion->set_module_viewed($cm);
 $event = \mod_projectboard\event\course_module_viewed::create([
-    "objectid" => $activity->id, "context" => $context
+    "objectid" => $activity->id, "context" => $context,
 ]);
 $event->add_record_snapshot("course_modules", $cm);
 $event->trigger();

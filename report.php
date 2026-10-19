@@ -8,11 +8,11 @@
 //
 // Moodle is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * Authorized project reporting and CSV export.
@@ -21,8 +21,6 @@
  * @copyright  2026 Eduardo Kraus {@link https://eduardokraus.com}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-defined("MOODLE_INTERNAL") || die();
 
 require_once("../../config.php");
 
@@ -33,6 +31,7 @@ $status = optional_param("status", "", PARAM_TEXT);
 $search = optional_param("search", "", PARAM_TEXT);
 $cm = get_coursemodule_from_id("projectboard", $id, 0, false, MUST_EXIST);
 $activity = $DB->get_record("projectboard", ["id" => $cm->instance], "*", MUST_EXIST);
+require_login($cm->course, false, $cm);
 \mod_projectboard\access_manager::require_view($cm);
 \mod_projectboard\access_manager::require_action("viewreports", $cm);
 $PAGE->set_url(new moodle_url("/mod/projectboard/report.php", ["id" => $id]));
@@ -62,7 +61,7 @@ $data = [
     "rows" => $rows, "hasrows" => !empty($rows),
     "priority" => $priority, "status" => $status, "search" => $search,
     "exporturl" => (new moodle_url("/mod/projectboard/report.php", [
-        "id" => $id, "export" => 1, "priority" => $priority, "status" => $status, "search" => $search
+        "id" => $id, "export" => 1, "priority" => $priority, "status" => $status, "search" => $search,
     ]))->out(false),
     "boardurl" => (new moodle_url("/mod/projectboard/view.php", ["id" => $id]))->out(false),
     "strings" => [
@@ -76,8 +75,8 @@ $data = [
         "late" => get_string("late", "projectboard"),
         "search" => get_string("search", "projectboard"),
         "filter" => get_string("filter", "projectboard"),
-        "exportcsv" => get_string("exportcsv", "projectboard")
-    ]
+        "exportcsv" => get_string("exportcsv", "projectboard"),
+    ],
 ];
 echo $OUTPUT->header();
 echo $OUTPUT->render_from_template("mod_projectboard/report", $data);

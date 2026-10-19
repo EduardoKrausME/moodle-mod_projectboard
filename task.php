@@ -8,11 +8,11 @@
 //
 // Moodle is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * Task editing page with Moodle's native editor.
@@ -22,8 +22,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined("MOODLE_INTERNAL") || die();
-
 require_once("../../config.php");
 require_once($CFG->libdir . "/formslib.php");
 
@@ -31,6 +29,7 @@ $cmid = required_param("id", PARAM_INT);
 $taskid = required_param("taskid", PARAM_INT);
 $cm = get_coursemodule_from_id("projectboard", $cmid, 0, false, MUST_EXIST);
 $activity = $DB->get_record("projectboard", ["id" => $cm->instance], "*", MUST_EXIST);
+require_login($cm->course, false, $cm);
 \mod_projectboard\access_manager::require_view($cm);
 $task = \mod_projectboard\access_manager::require_task($taskid, $activity, $cm, true);
 \mod_projectboard\access_manager::require_edit($task, $cm);
@@ -43,14 +42,14 @@ $PAGE->set_title(get_string("taskedit", "projectboard"));
 $PAGE->set_heading($activity->name);
 
 $form = new \mod_projectboard\form\task_editor_form($url, [
-    "cmid" => $cmid, "taskid" => $taskid, "version" => (int)$task->version, "context" => $context
+    "cmid" => $cmid, "taskid" => $taskid, "version" => (int)$task->version, "context" => $context,
 ]);
 $form->set_data((object)[
     "title" => $task->title,
     "description_editor" => [
         "text" => $task->description, "format" => (int)$task->descriptionformat,
-        "itemid" => 0
-    ]
+        "itemid" => 0,
+    ],
 ]);
 if ($form->is_cancelled()) {
     redirect(new moodle_url("/mod/projectboard/view.php", ["id" => $cmid, "boardid" => $task->boardid]));
@@ -61,7 +60,7 @@ if ($data = $form->get_data()) {
         "version" => $data->version,
         "title" => $data->title,
         "description" => $data->description_editor["text"],
-        "descriptionformat" => $data->description_editor["format"]
+        "descriptionformat" => $data->description_editor["format"],
     ]);
     \mod_projectboard\completion_service::refresh($activity, $cm, (int)$USER->id);
     redirect(new moodle_url("/mod/projectboard/view.php", ["id" => $cmid, "boardid" => $task->boardid]));
