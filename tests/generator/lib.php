@@ -8,11 +8,11 @@
 //
 // Moodle is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * Moodle test data generator.
@@ -22,9 +22,16 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
 defined("MOODLE_INTERNAL") || die();
 
+/**
+ * Provides mod projectboard generator functionality.
+ */
 class mod_projectboard_generator extends testing_module_generator {
+    /**
+     * Handles create instance for Project Board.
+     */
     public function create_instance($record = null, array $options = null) {
         $record = (object)$record;
         $defaults = [
@@ -49,7 +56,7 @@ class mod_projectboard_generator extends testing_module_generator {
             "completiongraded" => 0,
             "completionminscore" => 0,
             "showhistory" => 1,
-            "notifications" => 0
+            "notifications" => 0,
         ];
         foreach ($defaults as $field => $value) {
             if (!property_exists($record, $field)) {

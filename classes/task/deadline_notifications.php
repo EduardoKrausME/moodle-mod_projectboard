@@ -8,11 +8,11 @@
 //
 // Moodle is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * Scheduled task for deadline messages.
@@ -24,12 +24,22 @@
 
 namespace mod_projectboard\task;
 
+// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
 defined("MOODLE_INTERNAL") || die();
 
+/**
+ * Provides deadline notifications functionality.
+ */
 final class deadline_notifications extends \core\task\scheduled_task {
+    /**
+     * Handles get name for Project Board.
+     */
     public function get_name(): string {
         return get_string("task_deadlines", "projectboard");
     }
+    /**
+     * Handles execute for Project Board.
+     */
     public function execute() {
         \mod_projectboard\notification_service::scheduled_deadlines();
     }

@@ -8,11 +8,11 @@
 //
 // Moodle is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * Privacy API integration for projects and user evidence.
@@ -24,12 +24,17 @@
 
 namespace mod_projectboard\privacy;
 
+// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
 defined("MOODLE_INTERNAL") || die();
 
+/**
+ * Provides provider functionality.
+ */
 final class provider implements
         \core_privacy\local\metadata\provider,
         \core_privacy\local\request\plugin\provider,
         \core_privacy\local\request\core_userlist_provider {
+    /** @var array<string, string> User reference fields by storage table. */
     private const TABLES = [
         "projectboard_task" => "createdby",
         "projectboard_comment" => "userid",
@@ -40,9 +45,12 @@ final class provider implements
         "projectboard_notice" => "userid",
         "projectboard_grade" => "userid",
         "projectboard_board" => "owneruserid",
-        "projectboard_score" => "userid"
+        "projectboard_score" => "userid",
     ];
 
+    /**
+     * Handles get metadata for Project Board.
+     */
     public static function get_metadata(\core_privacy\local\metadata\collection $collection):
             \core_privacy\local\metadata\collection {
         foreach (self::TABLES as $table => $field) {
@@ -67,6 +75,9 @@ final class provider implements
         return $collection;
     }
 
+    /**
+     * Handles activity for Project Board.
+     */
     private static function activity(\context $context): ?\stdClass {
         global $DB;
         if ($context->contextlevel != CONTEXT_MODULE) {
@@ -76,6 +87,9 @@ final class provider implements
         return $cm ? $DB->get_record("projectboard", ["id" => $cm->instance]) ?: null : null;
     }
 
+    /**
+     * Handles users for Project Board.
+     */
     private static function users(\stdClass $activity): array {
         global $DB;
         $sql = "SELECT t.id FROM {projectboard_task} t
@@ -122,6 +136,9 @@ final class provider implements
         return array_values($users);
     }
 
+    /**
+     * Handles get contexts for userid for Project Board.
+     */
     public static function get_contexts_for_userid(int $userid): \core_privacy\local\request\contextlist {
         global $DB;
         $contexts = new \core_privacy\local\request\contextlist();
@@ -138,6 +155,9 @@ final class provider implements
         return $contexts;
     }
 
+    /**
+     * Handles get users in context for Project Board.
+     */
     public static function get_users_in_context(\core_privacy\local\request\userlist $userlist): void {
         $activity = self::activity($userlist->get_context());
         if ($activity) {
@@ -145,6 +165,9 @@ final class provider implements
         }
     }
 
+    /**
+     * Handles export user data for Project Board.
+     */
     public static function export_user_data(\core_privacy\local\request\approved_contextlist $contextlist): void {
         global $DB;
         $userid = (int)$contextlist->get_user()->id;
@@ -189,7 +212,7 @@ final class provider implements
                 [$activity->id]);
             foreach ($criteria as $criterionid) {
                 foreach ($DB->get_records("projectboard_score", [
-                    "criterionid" => $criterionid, "userid" => $userid
+                    "criterionid" => $criterionid, "userid" => $userid,
                 ]) as $score) {
                     $data->criteria[] = $score;
                 }
@@ -203,6 +226,9 @@ final class provider implements
         }
     }
 
+    /**
+     * Handles delete data for all users in context for Project Board.
+     */
     public static function delete_data_for_all_users_in_context(\context $context): void {
         $activity = self::activity($context);
         if ($activity) {
@@ -212,6 +238,9 @@ final class provider implements
         }
     }
 
+    /**
+     * Handles delete data for user for Project Board.
+     */
     public static function delete_data_for_user(\core_privacy\local\request\approved_contextlist $contextlist): void {
         foreach ($contextlist->get_contexts() as $context) {
             $activity = self::activity($context);
@@ -221,6 +250,9 @@ final class provider implements
         }
     }
 
+    /**
+     * Handles delete data for users for Project Board.
+     */
     public static function delete_data_for_users(\core_privacy\local\request\approved_userlist $userlist): void {
         $activity = self::activity($userlist->get_context());
         if ($activity) {
@@ -230,6 +262,9 @@ final class provider implements
         }
     }
 
+    /**
+     * Handles erase for Project Board.
+     */
     private static function erase(\stdClass $activity, \context $context, int $userid): void {
         global $DB;
         $transaction = $DB->start_delegated_transaction();

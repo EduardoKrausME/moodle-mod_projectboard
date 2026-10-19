@@ -8,11 +8,11 @@
 //
 // Moodle is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * Immutable functional audit trail.
@@ -24,9 +24,16 @@
 
 namespace mod_projectboard;
 
+// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
 defined("MOODLE_INTERNAL") || die();
 
+/**
+ * Provides history service functionality.
+ */
 final class history_service {
+    /**
+     * Handles record for Project Board.
+     */
     public static function record(int $taskid, string $action, $old = null, $new = null): void {
         global $DB, $USER;
         $DB->insert_record("projectboard_history", (object)[
@@ -35,10 +42,13 @@ final class history_service {
             "action" => clean_param($action, PARAM_ALPHANUMEXT),
             "oldvalue" => $old === null ? null : json_encode($old, JSON_UNESCAPED_UNICODE),
             "newvalue" => $new === null ? null : json_encode($new, JSON_UNESCAPED_UNICODE),
-            "timecreated" => time()
+            "timecreated" => time(),
         ]);
     }
 
+    /**
+     * Handles entries for Project Board.
+     */
     public static function entries(int $taskid, int $limit = 100): array {
         global $DB;
         return array_values($DB->get_records("projectboard_history", ["taskid" => $taskid],

@@ -8,11 +8,11 @@
 //
 // Moodle is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * Moodle gradebook and project assessments.
@@ -24,9 +24,16 @@
 
 namespace mod_projectboard;
 
+// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
 defined("MOODLE_INTERNAL") || die();
 
+/**
+ * Provides grading service functionality.
+ */
 final class grading_service {
+    /**
+     * Handles update item for Project Board.
+     */
     public static function update_item(\stdClass $activity, $grades = null): void {
         global $CFG;
         require_once($CFG->libdir . "/gradelib.php");
@@ -40,6 +47,9 @@ final class grading_service {
                 "grademax" => $activity->grade, "grademin" => 0]);
     }
 
+    /**
+     * Handles save for Project Board.
+     */
     public static function save(\stdClass $activity, \stdClass $cm, array $data): void {
         global $DB, $USER;
         access_manager::require_action("grade", $cm);
@@ -96,6 +106,9 @@ final class grading_service {
         self::update_item($activity, $grades);
     }
 
+    /**
+     * Handles sync for Project Board.
+     */
     public static function sync(\stdClass $activity, int $userid = 0): void {
         global $DB;
         $params = ["projectboardid" => $activity->id];

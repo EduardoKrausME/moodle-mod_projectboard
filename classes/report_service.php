@@ -8,11 +8,11 @@
 //
 // Moodle is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * Teacher analytics and authorized CSV export.
@@ -24,9 +24,16 @@
 
 namespace mod_projectboard;
 
+// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
 defined("MOODLE_INTERNAL") || die();
 
+/**
+ * Provides report service functionality.
+ */
 final class report_service {
+    /**
+     * Handles rows for Project Board.
+     */
     public static function rows(\stdClass $activity, \stdClass $cm): array {
         global $DB;
         access_manager::require_action("viewreports", $cm);
@@ -49,7 +56,7 @@ final class report_service {
                     "duedate" => $task->duedate ? userdate($task->duedate, "%Y-%m-%d %H:%M") : "",
                     "assignees" => implode(", ", $users),
                     "overdue" => $task->duedate && $task->duedate < time() && (!$column || !$column->isdone)
-                        ? get_string("late", "projectboard") : ""
+                        ? get_string("late", "projectboard") : "",
                 ];
             }
         }

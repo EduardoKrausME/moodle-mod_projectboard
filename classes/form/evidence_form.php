@@ -8,11 +8,11 @@
 //
 // Moodle is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * Evidence upload using Moodle File API.
@@ -24,11 +24,18 @@
 
 namespace mod_projectboard\form;
 
+// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
 defined("MOODLE_INTERNAL") || die();
 
 require_once($CFG->libdir . "/formslib.php");
 
+/**
+ * Provides evidence form functionality.
+ */
 final class evidence_form extends \moodleform {
+    /**
+     * Handles definition for Project Board.
+     */
     protected function definition(): void {
         $mform = $this->_form;
         $mform->addElement("hidden", "id", $this->_customdata["cmid"]);

@@ -8,11 +8,11 @@
 //
 // Moodle is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * Transactional Kanban task commands.
@@ -24,9 +24,16 @@
 
 namespace mod_projectboard;
 
+// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
 defined("MOODLE_INTERNAL") || die();
 
+/**
+ * Provides task service functionality.
+ */
 final class task_service {
+    /**
+     * Handles activity lock for Project Board.
+     */
     public static function activity_lock(int $activityid): \core\lock\lock {
         $factory = \core\lock\lock_config::get_lock_factory("mod_projectboard");
         $lock = $factory->get_lock("activity_" . $activityid, 15);
@@ -36,6 +43,9 @@ final class task_service {
         return $lock;
     }
 
+    /**
+     * Handles lock for Project Board.
+     */
     private static function lock(int $boardid): \core\lock\lock {
         global $DB;
         $activityid = (int)$DB->get_field("projectboard_board", "projectboardid",
@@ -43,20 +53,29 @@ final class task_service {
         return self::activity_lock($activityid);
     }
 
+    /**
+     * Handles column for Project Board.
+     */
     private static function column(\stdClass $activity, int $columnid): \stdClass {
         global $DB;
         $column = $DB->get_record("projectboard_column", [
-            "id" => $columnid, "projectboardid" => $activity->id, "archived" => 0
+            "id" => $columnid, "projectboardid" => $activity->id, "archived" => 0,
         ], "*", MUST_EXIST);
         return $column;
     }
 
+    /**
+     * Handles require version for Project Board.
+     */
     private static function require_version(\stdClass $task, array $data): void {
         if (!array_key_exists("version", $data) || (int)$data["version"] !== (int)$task->version) {
             throw new \moodle_exception("conflict", "projectboard");
         }
     }
 
+    /**
+     * Handles assert capacity for Project Board.
+     */
     private static function assert_capacity(\stdClass $activity, \stdClass $column, int $boardid, int $excludedid = 0): void {
         global $DB;
         $limit = (int)$column->wiplimit ?: (int)$activity->maxwip;
@@ -66,13 +85,16 @@ final class task_service {
         $sql = "SELECT COUNT(1) FROM {projectboard_task}
                  WHERE boardid = :boardid AND columnid = :columnid AND archived = 0 AND id <> :excludedid";
         $count = $DB->count_records_sql($sql, [
-            "boardid" => $boardid, "columnid" => $column->id, "excludedid" => $excludedid
+            "boardid" => $boardid, "columnid" => $column->id, "excludedid" => $excludedid,
         ]);
         if ($count >= $limit) {
             throw new \moodle_exception("tasklimit", "projectboard");
         }
     }
 
+    /**
+     * Handles assert done for Project Board.
+     */
     private static function assert_done(\stdClass $activity, \stdClass $task): void {
         global $DB;
         if (dependency_service::blockers((int)$task->id)) {
@@ -92,6 +114,9 @@ final class task_service {
         }
     }
 
+    /**
+     * Handles reorder for Project Board.
+     */
     private static function reorder(int $boardid, int $columnid): void {
         global $DB;
         $tasks = $DB->get_records("projectboard_task",
@@ -106,6 +131,9 @@ final class task_service {
         }
     }
 
+    /**
+     * Handles create for Project Board.
+     */
     public static function create(\stdClass $activity, \stdClass $cm, array $data): int {
         global $DB, $USER;
         $board = access_manager::require_board((int)($data["boardid"] ?? 0), $activity, $cm, true);
@@ -139,7 +167,7 @@ final class task_service {
                 "priority" => "normal", "tags" => "",
                 "startdate" => 0, "duedate" => 0, "estimate" => 0,
                 "sortorder" => $position, "archived" => 0, "version" => 1,
-                "completedat" => 0, "timecreated" => time(), "timemodified" => time()
+                "completedat" => 0, "timecreated" => time(), "timemodified" => time(),
             ];
             $task->id = $DB->insert_record("projectboard_task", $task);
             history_service::record((int)$task->id, "created", null, ["title" => $title]);
@@ -150,6 +178,9 @@ final class task_service {
         }
     }
 
+    /**
+     * Handles update for Project Board.
+     */
     public static function update(\stdClass $activity, \stdClass $cm, array $data): void {
         global $DB;
         $task = access_manager::require_task((int)($data["taskid"] ?? 0), $activity, $cm, true);
@@ -202,6 +233,9 @@ final class task_service {
         }
     }
 
+    /**
+     * Handles assign for Project Board.
+     */
     public static function assign(\stdClass $activity, \stdClass $cm, array $data): void {
         global $DB, $USER;
         $task = access_manager::require_task((int)($data["taskid"] ?? 0), $activity, $cm, true);
@@ -236,6 +270,9 @@ final class task_service {
         }
     }
 
+    /**
+     * Handles move for Project Board.
+     */
     public static function move(\stdClass $activity, \stdClass $cm, array $data): void {
         global $DB;
         $task = access_manager::require_task((int)($data["taskid"] ?? 0), $activity, $cm, true);
@@ -272,7 +309,7 @@ final class task_service {
             self::reorder((int)$task->boardid, (int)$target->id);
             $position = max(0, (int)($data["position"] ?? 0));
             $ordered = array_values($DB->get_records("projectboard_task", [
-                "boardid" => $task->boardid, "columnid" => $target->id, "archived" => 0
+                "boardid" => $task->boardid, "columnid" => $target->id, "archived" => 0,
             ], "sortorder ASC, id ASC", "id"));
             $ordered = array_values(array_filter($ordered, static function($row) use ($task) {
                 return (int)$row->id !== (int)$task->id;
@@ -296,6 +333,9 @@ final class task_service {
         }
     }
 
+    /**
+     * Handles archive for Project Board.
+     */
     public static function archive(\stdClass $activity, \stdClass $cm, array $data): void {
         global $DB;
         $task = access_manager::require_task((int)($data["taskid"] ?? 0), $activity, $cm, true);
@@ -320,12 +360,15 @@ final class task_service {
         }
     }
 
+    /**
+     * Handles duplicate for Project Board.
+     */
     public static function duplicate(\stdClass $activity, \stdClass $cm, array $data): int {
         $original = access_manager::require_task((int)($data["taskid"] ?? 0), $activity, $cm);
         access_manager::require_action("addtask", $cm);
         return self::create($activity, $cm, [
             "boardid" => $original->boardid, "columnid" => $original->columnid,
-            "title" => $original->title . " (copy)", "description" => $original->description
+            "title" => $original->title . " (copy)", "description" => $original->description,
         ]);
     }
 }

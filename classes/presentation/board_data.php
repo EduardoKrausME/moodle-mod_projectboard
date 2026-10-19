@@ -8,11 +8,11 @@
 //
 // Moodle is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * Mustache view-model construction for project boards.
@@ -24,9 +24,16 @@
 
 namespace mod_projectboard\presentation;
 
+// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
 defined("MOODLE_INTERNAL") || die();
 
+/**
+ * Provides board data functionality.
+ */
 final class board_data {
+    /**
+     * Handles page for Project Board.
+     */
     public static function page(\stdClass $activity, \stdClass $cm, ?\stdClass $board, array $boards): array {
         global $USER;
         $context = \context_module::instance($cm->id);
@@ -34,7 +41,7 @@ final class board_data {
         foreach ($boards as $candidate) {
             $options[] = [
                 "id" => (int)$candidate->id, "name" => $candidate->name,
-                "selected" => $board && $candidate->id == $board->id
+                "selected" => $board && $candidate->id == $board->id,
             ];
         }
         $canmanage = \mod_projectboard\access_manager::can_manage($cm);
@@ -62,10 +69,13 @@ final class board_data {
             "columnoptions" => array_map(static function($col) {
                 return ["id" => $col->id, "name" => $col->name];
             }, \mod_projectboard\board_service::columns($activity)),
-            "strings" => self::strings()
+            "strings" => self::strings(),
         ];
     }
 
+    /**
+     * Handles board for Project Board.
+     */
     public static function board(\stdClass $activity, \stdClass $cm, \stdClass $board): array {
         global $DB;
         $context = \context_module::instance($cm->id);
@@ -111,7 +121,7 @@ final class board_data {
                     "positions" => array_map(static function($other) use ($column) {
                         return ["id" => (int)$other->id, "name" => $other->name,
                             "selected" => $other->id == $column->id];
-                    }, $all)
+                    }, $all),
                 ];
             }
             $transitions = [];
@@ -120,12 +130,12 @@ final class board_data {
                     continue;
                 }
                 $rule = $DB->get_record("projectboard_transition", [
-                    "fromcolumnid" => $column->id, "tocolumnid" => $destination->id
+                    "fromcolumnid" => $column->id, "tocolumnid" => $destination->id,
                 ]);
                 $transitions[] = [
                     "fromid" => (int)$column->id, "toid" => (int)$destination->id,
                     "name" => $destination->name, "allowed" => !$rule || $rule->allowed,
-                    "blocked" => $rule && !$rule->allowed
+                    "blocked" => $rule && !$rule->allowed,
                 ];
             }
             $columns[] = [
@@ -134,7 +144,7 @@ final class board_data {
                 "transitions" => $transitions,
                 "count" => count($cards), "cards" => $cards,
                 "hascards" => !empty($cards), "canadd" => $canadd,
-                "canmanage" => has_capability("mod/projectboard:managecolumns", $context)
+                "canmanage" => has_capability("mod/projectboard:managecolumns", $context),
             ];
         }
         return [
@@ -143,10 +153,13 @@ final class board_data {
             "columns" => $columns, "hascolumns" => !empty($columns),
             "canadd" => $canadd, "canmove" => $canmove,
             "canmanagecolumns" => has_capability("mod/projectboard:managecolumns", $context),
-            "strings" => self::strings()
+            "strings" => self::strings(),
         ];
     }
 
+    /**
+     * Handles task for Project Board.
+     */
     public static function task(\stdClass $activity, \stdClass $cm, \stdClass $task): array {
         global $DB;
         $context = \context_module::instance($cm->id);
@@ -160,7 +173,7 @@ final class board_data {
             $items[] = [
                 "id" => (int)$item->id, "title" => $item->title,
                 "done" => (bool)$item->done, "taskid" => (int)$task->id,
-                "canedit" => $canedit
+                "canedit" => $canedit,
             ];
         }
         $comments = [];
@@ -179,11 +192,11 @@ final class board_data {
                 "id" => (int)$entry->id, "parentid" => (int)$entry->parentid,
                 "files" => $commentfiles,
                 "replyurl" => (new \moodle_url("/mod/projectboard/comment.php", [
-                    "id" => $cm->id, "taskid" => $task->id, "parentid" => $entry->id
+                    "id" => $cm->id, "taskid" => $task->id, "parentid" => $entry->id,
                 ]))->out(false),
                 "author" => $author ? fullname($author) : "",
                 "content" => format_text($entry->content, $entry->format, ["context" => $context]),
-                "when" => userdate($entry->timecreated)
+                "when" => userdate($entry->timecreated),
             ];
         }
         $evidences = [];
@@ -197,7 +210,7 @@ final class board_data {
                     "evidence", $evidence->id, $file->get_filepath(), $file->get_filename());
                 $evidences[] = [
                     "id" => (int)$evidence->id, "description" => $evidence->description,
-                    "filename" => $file->get_filename(), "url" => $url->out(false)
+                    "filename" => $file->get_filename(), "url" => $url->out(false),
                 ];
             }
         }
@@ -217,7 +230,7 @@ final class board_data {
                 $history[] = [
                     "action" => $entry->action, "userid" => (int)$entry->userid,
                     "when" => userdate($entry->timecreated),
-                    "oldvalue" => $entry->oldvalue, "newvalue" => $entry->newvalue
+                    "oldvalue" => $entry->oldvalue, "newvalue" => $entry->newvalue,
                 ];
             }
         }
@@ -247,17 +260,20 @@ final class board_data {
             "dependencies" => $dependencies, "blocked" => !empty($blocked),
             "assigneeids" => implode(",", $users),
             "commenturl" => (new \moodle_url("/mod/projectboard/comment.php", [
-                "id" => $cm->id, "taskid" => $task->id
+                "id" => $cm->id, "taskid" => $task->id,
             ]))->out(false),
             "evidenceurl" => (new \moodle_url("/mod/projectboard/evidence.php", [
-                "id" => $cm->id, "taskid" => $task->id
+                "id" => $cm->id, "taskid" => $task->id,
             ]))->out(false),
             "strings" => self::strings(),
             "history" => $history,
-            "showhistory" => !empty($history)
+            "showhistory" => !empty($history),
         ];
     }
 
+    /**
+     * Handles strings for Project Board.
+     */
     private static function strings(): array {
         $keys = ["board", "column", "addtask", "tasktitle", "description", "save", "cancel",
             "priority", "normal", "low", "high", "urgent", "duedate", "start", "estimate",

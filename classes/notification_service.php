@@ -8,11 +8,11 @@
 //
 // Moodle is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * Persistent notification delivery and deduplication.
@@ -24,9 +24,16 @@
 
 namespace mod_projectboard;
 
+// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
 defined("MOODLE_INTERNAL") || die();
 
+/**
+ * Provides notification service functionality.
+ */
 final class notification_service {
+    /**
+     * Handles send for Project Board.
+     */
     public static function send(\stdClass $activity, \stdClass $task, int $userid, string $provider,
             string $periodkey): void {
         global $DB;
@@ -57,7 +64,7 @@ final class notification_service {
         $message->smallmessage = $message->fullmessage;
         $message->notification = 1;
         $message->contexturl = (new \moodle_url("/mod/projectboard/view.php", [
-            "id" => get_coursemodule_from_instance("projectboard", $activity->id)->id, "taskid" => $task->id
+            "id" => get_coursemodule_from_instance("projectboard", $activity->id)->id, "taskid" => $task->id,
         ]))->out(false);
         $message->contexturlname = $activity->name;
         $transaction = $DB->start_delegated_transaction();
@@ -76,6 +83,9 @@ final class notification_service {
         }
     }
 
+    /**
+     * Handles task event for Project Board.
+     */
     public static function task_event(\stdClass $activity, \stdClass $task,
             string $provider, int $exclude = 0): void {
         global $DB;
@@ -90,6 +100,9 @@ final class notification_service {
         }
     }
 
+    /**
+     * Handles scheduled deadlines for Project Board.
+     */
     public static function scheduled_deadlines(): void {
         global $DB;
         $now = time();
