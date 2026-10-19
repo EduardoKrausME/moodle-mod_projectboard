@@ -8,11 +8,11 @@
 //
 // Moodle is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * Activity restore with user, group and task mapping.
@@ -22,13 +22,23 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Guarded Moodle class.
 defined("MOODLE_INTERNAL") || die();
 
+/**
+ * Defines restore projectboard activity structure step functionality.
+ */
 class restore_projectboard_activity_structure_step extends restore_activity_structure_step {
+    /** @var mixed $pendingdeps pendingdeps configuration. */
     private $pendingdeps = [];
+    /** @var mixed $pendingparents pendingparents configuration. */
     private $pendingparents = [];
+    /** @var mixed $pendingcomments pendingcomments configuration. */
     private $pendingcomments = [];
 
+    /**
+     * Handles define structure for Project Board.
+     */
     protected function define_structure() {
         $paths = [
             new restore_path_element("projectboard", "/activity/projectboard"),
@@ -45,11 +55,14 @@ class restore_projectboard_activity_structure_step extends restore_activity_stru
             new restore_path_element("notice", "/activity/projectboard/boards/board/tasks/task/notices/notice"),
             new restore_path_element("grade", "/activity/projectboard/grades/grade"),
             new restore_path_element("criterion", "/activity/projectboard/criteria/criterion"),
-            new restore_path_element("score", "/activity/projectboard/criteria/criterion/scores/score")
+            new restore_path_element("score", "/activity/projectboard/criteria/criterion/scores/score"),
         ];
         return $this->prepare_activity_structure($paths);
     }
 
+    /**
+     * Handles process projectboard for Project Board.
+     */
     protected function process_projectboard($data) {
         global $DB;
         $data = (object)$data;
@@ -59,6 +72,9 @@ class restore_projectboard_activity_structure_step extends restore_activity_stru
         $this->apply_activity_instance($data->id);
     }
 
+    /**
+     * Handles process column for Project Board.
+     */
     protected function process_column($data) {
         global $DB;
         $data = (object)$data;
@@ -68,6 +84,9 @@ class restore_projectboard_activity_structure_step extends restore_activity_stru
         $this->set_mapping("column", $oldid, $data->id);
     }
 
+    /**
+     * Handles process transition for Project Board.
+     */
     protected function process_transition($data) {
         global $DB;
         $data = (object)$data;
@@ -82,6 +101,9 @@ class restore_projectboard_activity_structure_step extends restore_activity_stru
         $this->set_mapping("transition", $oldid, $data->id);
     }
 
+    /**
+     * Handles process board for Project Board.
+     */
     protected function process_board($data) {
         global $DB;
         $data = (object)$data;
@@ -93,6 +115,9 @@ class restore_projectboard_activity_structure_step extends restore_activity_stru
         $this->set_mapping("board", $oldid, $data->id);
     }
 
+    /**
+     * Handles process task for Project Board.
+     */
     protected function process_task($data) {
         global $DB;
         $data = (object)$data;
@@ -109,6 +134,9 @@ class restore_projectboard_activity_structure_step extends restore_activity_stru
         $this->set_mapping("task", $oldid, $data->id);
     }
 
+    /**
+     * Handles process assignee for Project Board.
+     */
     protected function process_assignee($data) {
         global $DB;
         $data = (object)$data;
@@ -119,6 +147,9 @@ class restore_projectboard_activity_structure_step extends restore_activity_stru
         $this->set_mapping("assignee", $oldid, $data->id);
     }
 
+    /**
+     * Handles process check for Project Board.
+     */
     protected function process_check($data) {
         global $DB;
         $data = (object)$data;
@@ -129,11 +160,17 @@ class restore_projectboard_activity_structure_step extends restore_activity_stru
         $this->set_mapping("check", $oldid, $data->id);
     }
 
+    /**
+     * Handles process dep for Project Board.
+     */
     protected function process_dep($data) {
         $data = (object)$data;
         $this->pendingdeps[] = [(int)$this->get_new_parentid("task"), (int)$data->dependsid];
     }
 
+    /**
+     * Handles process comment for Project Board.
+     */
     protected function process_comment($data) {
         global $DB;
         $data = (object)$data;
@@ -149,6 +186,9 @@ class restore_projectboard_activity_structure_step extends restore_activity_stru
         $this->set_mapping("comment", $oldid, $data->id, true);
     }
 
+    /**
+     * Handles process evidence for Project Board.
+     */
     protected function process_evidence($data) {
         global $DB;
         $data = (object)$data;
@@ -159,6 +199,9 @@ class restore_projectboard_activity_structure_step extends restore_activity_stru
         $this->set_mapping("evidence", $oldid, $data->id, true);
     }
 
+    /**
+     * Handles process history for Project Board.
+     */
     protected function process_history($data) {
         global $DB;
         $data = (object)$data;
@@ -169,10 +212,16 @@ class restore_projectboard_activity_structure_step extends restore_activity_stru
         $this->set_mapping("history", $oldid, $data->id);
     }
 
+    /**
+     * Handles process notice for Project Board.
+     */
     protected function process_notice($data) {
         // Delivery history is not restored to avoid masking future notifications.
     }
 
+    /**
+     * Handles process grade for Project Board.
+     */
     protected function process_grade($data) {
         global $DB;
         $data = (object)$data;
@@ -185,6 +234,9 @@ class restore_projectboard_activity_structure_step extends restore_activity_stru
         $this->set_mapping("grade", $oldid, $data->id);
     }
 
+    /**
+     * Handles process criterion for Project Board.
+     */
     protected function process_criterion($data) {
         global $DB;
         $data = (object)$data;
@@ -194,6 +246,9 @@ class restore_projectboard_activity_structure_step extends restore_activity_stru
         $this->set_mapping("criterion", $oldid, $data->id);
     }
 
+    /**
+     * Handles process score for Project Board.
+     */
     protected function process_score($data) {
         global $DB;
         $data = (object)$data;
@@ -206,6 +261,9 @@ class restore_projectboard_activity_structure_step extends restore_activity_stru
         $this->set_mapping("score", $oldid, $data->id);
     }
 
+    /**
+     * Handles after execute for Project Board.
+     */
     protected function after_execute() {
         global $DB;
         foreach ($this->pendingparents as [$childid, $oldparentid]) {
@@ -224,7 +282,7 @@ class restore_projectboard_activity_structure_step extends restore_activity_stru
             $dependsid = $this->get_mappingid("task", $olddependsid, 0);
             if ($taskid && $dependsid && $taskid !== $dependsid) {
                 $DB->insert_record("projectboard_dep", (object)[
-                    "taskid" => $taskid, "dependsid" => $dependsid
+                    "taskid" => $taskid, "dependsid" => $dependsid,
                 ]);
             }
         }
