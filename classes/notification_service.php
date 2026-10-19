@@ -58,7 +58,8 @@ final class notification_service {
         $message->userfrom = $sender;
         $message->userto = $target;
         $message->subject = get_string("tasknotification", "projectboard");
-        $message->fullmessage = format_string($task->title, true) . " - " . get_string($provider === "deadline" ? "duedate" : "tasknotification", "projectboard");
+        $message->fullmessage = format_string($task->title, true) . " - " .
+            get_string($provider === "deadline" ? "duedate" : "tasknotification", "projectboard");
         $message->fullmessageformat = FORMAT_PLAIN;
         $message->fullmessagehtml = "";
         $message->smallmessage = $message->fullmessage;

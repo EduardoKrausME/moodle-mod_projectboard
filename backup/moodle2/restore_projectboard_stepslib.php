@@ -288,6 +288,5 @@ class restore_projectboard_activity_structure_step extends restore_activity_stru
         }
         $this->add_related_files("mod_projectboard", "evidence", "evidence");
         $this->add_related_files("mod_projectboard", "commentattachment", "comment");
-
     }
 }

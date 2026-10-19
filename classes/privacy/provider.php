@@ -51,8 +51,7 @@ final class provider implements
     /**
      * Handles get metadata for Project Board.
      */
-    public static function get_metadata(\core_privacy\local\metadata\collection $collection):
-            \core_privacy\local\metadata\collection {
+    public static function get_metadata(\core_privacy\local\metadata\collection $collection): \core_privacy\local\metadata\collection {
         foreach (self::TABLES as $table => $field) {
             $fields = [$field => "privacy:metadata:" . $table];
             foreach (["content", "description", "feedback", "oldvalue", "newvalue", "title", "name",
@@ -63,7 +62,7 @@ final class provider implements
                     "projectboard_grade" => "feedback",
                     "projectboard_history" => "oldvalue,newvalue",
                     "projectboard_task" => "title,description,priority,tags",
-                    "projectboard_board" => "name"
+                    "projectboard_board" => "name",
                 ][$table] ?? ""), true)) {
                     $fields[$candidate] = "privacy:metadata:" . $table;
                 }
@@ -192,7 +191,7 @@ final class provider implements
                         "projectboard_assignee" => "assignments",
                         "projectboard_check" => "checklists",
                         "projectboard_history" => "history",
-                        "projectboard_notice" => "notices"
+                        "projectboard_notice" => "notices",
                     ] as $table => $collection) {
                         foreach ($DB->get_records($table, ["taskid" => $task->id, "userid" => $userid]) as $entry) {
                             $data->$collection[] = $entry;

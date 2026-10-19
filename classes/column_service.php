@@ -46,62 +46,64 @@ final class column_service {
                     throw new \invalid_parameter_exception("Column name required");
                 }
                 $colour = self::colour($data["colour"] ?? "#64748b");
-                $next = (int)$DB->get_field_sql("SELECT COALESCE(MAX(sortorder), -1) + 1 FROM {projectboard_column} WHERE projectboardid = ?",
-                    [$activity->id]);
+                $next = (int)$DB->get_field_sql(
+                    "SELECT COALESCE(MAX(sortorder), -1) + 1 FROM {projectboard_column} WHERE projectboardid = ?",
+                    [$activity->id]
+                );
                 $DB->insert_record("projectboard_column", (object)[
                     "projectboardid" => $activity->id, "name" => $name, "colour" => $colour,
                     "sortorder" => $next, "wiplimit" => max(0, (int)($data["wiplimit"] ?? 0)),
                     "archived" => 0, "isdone" => 0, "isreview" => 0,
                     "timecreated" => time(), "timemodified" => time(),
                 ]);
-        } else {
-            $column = $DB->get_record("projectboard_column", [
-                "id" => (int)($data["columnid"] ?? 0), "projectboardid" => $activity->id,
-            ], "*", MUST_EXIST);
-            if ($action === "column_edit") {
-                $column->name = trim(clean_param($data["name"] ?? $column->name, PARAM_TEXT));
-                if (!$column->name) {
-                    throw new \invalid_parameter_exception("Column name required");
-                }
-                $column->colour = self::colour($data["colour"] ?? $column->colour);
-                $column->wiplimit = max(0, (int)($data["wiplimit"] ?? $column->wiplimit));
-                $column->timemodified = time();
-                $DB->update_record("projectboard_column", $column);
-            } else if ($action === "column_archive") {
-                if ($DB->record_exists("projectboard_task", ["columnid" => $column->id, "archived" => 0])) {
-                    throw new \moodle_exception("invalidaccess", "projectboard");
-                }
-                $column->archived = 1;
-                $DB->update_record("projectboard_column", $column);
-            } else if ($action === "column_order") {
-                $columns = board_service::columns($activity);
-                $ids = array_column($columns, "id");
-                $current = array_search((int)$column->id, $ids, true);
-                $next = $current + ((int)($data["direction"] ?? 0) > 0 ? 1 : -1);
-                if (isset($ids[$next])) {
-                    [$ids[$current], $ids[$next]] = [$ids[$next], $ids[$current]];
-                    foreach ($ids as $position => $id) {
-                        $DB->set_field("projectboard_column", "sortorder", $position, ["id" => $id]);
-                    }
-                }
-            } else if ($action === "column_transition") {
-                $target = $DB->get_record("projectboard_column", [
-                    "id" => (int)($data["targetid"] ?? 0), "projectboardid" => $activity->id,
-                ], "*", MUST_EXIST);
-                $where = ["fromcolumnid" => $column->id, "tocolumnid" => $target->id];
-                $rule = $DB->get_record("projectboard_transition", $where);
-                if (!$rule) {
-                    $DB->insert_record("projectboard_transition", (object)($where + [
-                        "projectboardid" => $activity->id, "allowed" => !empty($data["allowed"]) ? 1 : 0,
-                    ]));
-                } else {
-                    $rule->allowed = !empty($data["allowed"]) ? 1 : 0;
-                    $DB->update_record("projectboard_transition", $rule);
-                }
             } else {
-                throw new \invalid_parameter_exception("Invalid column operation");
+                $column = $DB->get_record("projectboard_column", [
+                    "id" => (int)($data["columnid"] ?? 0), "projectboardid" => $activity->id,
+                ], "*", MUST_EXIST);
+                if ($action === "column_edit") {
+                    $column->name = trim(clean_param($data["name"] ?? $column->name, PARAM_TEXT));
+                    if (!$column->name) {
+                        throw new \invalid_parameter_exception("Column name required");
+                    }
+                    $column->colour = self::colour($data["colour"] ?? $column->colour);
+                    $column->wiplimit = max(0, (int)($data["wiplimit"] ?? $column->wiplimit));
+                    $column->timemodified = time();
+                    $DB->update_record("projectboard_column", $column);
+                } else if ($action === "column_archive") {
+                    if ($DB->record_exists("projectboard_task", ["columnid" => $column->id, "archived" => 0])) {
+                        throw new \moodle_exception("invalidaccess", "projectboard");
+                    }
+                    $column->archived = 1;
+                    $DB->update_record("projectboard_column", $column);
+                } else if ($action === "column_order") {
+                    $columns = board_service::columns($activity);
+                    $ids = array_column($columns, "id");
+                    $current = array_search((int)$column->id, $ids, true);
+                    $next = $current + ((int)($data["direction"] ?? 0) > 0 ? 1 : -1);
+                    if (isset($ids[$next])) {
+                        [$ids[$current], $ids[$next]] = [$ids[$next], $ids[$current]];
+                        foreach ($ids as $position => $id) {
+                            $DB->set_field("projectboard_column", "sortorder", $position, ["id" => $id]);
+                        }
+                    }
+                } else if ($action === "column_transition") {
+                    $target = $DB->get_record("projectboard_column", [
+                        "id" => (int)($data["targetid"] ?? 0), "projectboardid" => $activity->id,
+                    ], "*", MUST_EXIST);
+                    $where = ["fromcolumnid" => $column->id, "tocolumnid" => $target->id];
+                    $rule = $DB->get_record("projectboard_transition", $where);
+                    if (!$rule) {
+                        $DB->insert_record("projectboard_transition", (object)($where + [
+                            "projectboardid" => $activity->id, "allowed" => !empty($data["allowed"]) ? 1 : 0,
+                        ]));
+                    } else {
+                        $rule->allowed = !empty($data["allowed"]) ? 1 : 0;
+                        $DB->update_record("projectboard_transition", $rule);
+                    }
+                } else {
+                    throw new \invalid_parameter_exception("Invalid column operation");
+                }
             }
-        }
             $transaction->allow_commit();
         } finally {
             $lock->release();

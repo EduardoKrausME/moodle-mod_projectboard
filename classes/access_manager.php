@@ -143,7 +143,7 @@ final class access_manager {
      */
     public static function require_task(int $taskid, \stdClass $activity, \stdClass $cm, bool $write = false): \stdClass {
         global $DB;
-        $task = $DB->get_record("projectboard_task", ["id" => $taskid], MUST_EXIST);
+        $task = $DB->get_record("projectboard_task", ["id" => $taskid], "*", MUST_EXIST);
         self::require_board((int)$task->boardid, $activity, $cm, $write);
         if ($task->archived && $write && !self::can_manage($cm)) {
             throw new \moodle_exception("invalidaccess", "projectboard");
