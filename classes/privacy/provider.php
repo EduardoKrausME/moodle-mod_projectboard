@@ -24,6 +24,8 @@
 
 namespace mod_projectboard\privacy;
 
+use core_privacy\local\metadata\collection;
+
 // phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
 defined("MOODLE_INTERNAL") || die();
 
@@ -51,7 +53,7 @@ final class provider implements
     /**
      * Handles get metadata for Project Board.
      */
-    public static function get_metadata(\core_privacy\local\metadata\collection $collection): \core_privacy\local\metadata\collection {
+    public static function get_metadata(collection $collection): collection {
         foreach (self::TABLES as $table => $field) {
             $fields = [$field => "privacy:metadata:" . $table];
             foreach (["content", "description", "feedback", "oldvalue", "newvalue", "title", "name",
