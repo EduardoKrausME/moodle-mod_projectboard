@@ -8,11 +8,11 @@
 //
 // Moodle is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * Board provisioning and selection.
@@ -24,9 +24,16 @@
 
 namespace mod_projectboard;
 
+// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
 defined("MOODLE_INTERNAL") || die();
 
+/**
+ * Provides board service functionality.
+ */
 final class board_service {
+    /**
+     * Handles default columns operations for Project Board.
+     */
     public static function default_columns(int $activityid): void {
         global $DB;
         $items = [
@@ -34,7 +41,7 @@ final class board_service {
             ["todo", "#3b82f6", 0, 0],
             ["inprogress", "#eab308", 0, 0],
             ["review", "#a855f7", 0, 1],
-            ["done", "#16a34a", 1, 0]
+            ["done", "#16a34a", 1, 0],
         ];
         foreach ($items as $position => $item) {
             $DB->insert_record("projectboard_column", (object)[
@@ -47,11 +54,14 @@ final class board_service {
                 "isdone" => $item[2],
                 "isreview" => $item[3],
                 "timecreated" => time(),
-                "timemodified" => time()
+                "timemodified" => time(),
             ]);
         }
     }
 
+    /**
+     * Handles ensure operations for Project Board.
+     */
     public static function ensure(\stdClass $activity, int $userid = 0, int $groupid = 0): \stdClass {
         global $DB;
         if ($activity->workmode === "individual" && !$userid ||
@@ -82,7 +92,7 @@ final class board_service {
             $board = (object)($where + [
                 "name" => $activity->name,
                 "timecreated" => time(),
-                "timemodified" => time()
+                "timemodified" => time(),
             ]);
             $board->id = $DB->insert_record("projectboard_board", $board);
             return $board;
@@ -91,6 +101,9 @@ final class board_service {
         }
     }
 
+    /**
+     * Handles available operations for Project Board.
+     */
     public static function available(\stdClass $activity, \stdClass $cm): array {
         global $DB, $USER;
         $boards = [];
@@ -126,6 +139,9 @@ final class board_service {
         return $boards;
     }
 
+    /**
+     * Handles columns operations for Project Board.
+     */
     public static function columns(\stdClass $activity): array {
         global $DB;
         return array_values($DB->get_records("projectboard_column",

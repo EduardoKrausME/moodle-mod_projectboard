@@ -8,11 +8,11 @@
 //
 // Moodle is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * Criteria-based grade definition and scoring.
@@ -24,15 +24,25 @@
 
 namespace mod_projectboard;
 
+// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
 defined("MOODLE_INTERNAL") || die();
 
+/**
+ * Provides criterion service functionality.
+ */
 final class criterion_service {
+    /**
+     * Handles all operations for Project Board.
+     */
     public static function all(\stdClass $activity): array {
         global $DB;
         return array_values($DB->get_records("projectboard_criterion",
             ["projectboardid" => $activity->id], "sortorder ASC, id ASC"));
     }
 
+    /**
+     * Handles create operations for Project Board.
+     */
     public static function create(\stdClass $activity, \stdClass $cm, array $data): void {
         global $DB;
         access_manager::require_action("grade", $cm);
@@ -50,7 +60,7 @@ final class criterion_service {
             $position = $DB->count_records("projectboard_criterion", ["projectboardid" => $activity->id]);
             $DB->insert_record("projectboard_criterion", (object)[
                 "projectboardid" => $activity->id, "name" => $name,
-                "maxscore" => $max, "sortorder" => $position
+                "maxscore" => $max, "sortorder" => $position,
             ]);
             $transaction->allow_commit();
         } finally {
@@ -58,6 +68,9 @@ final class criterion_service {
         }
     }
 
+    /**
+     * Handles score operations for Project Board.
+     */
     public static function score(\stdClass $activity, \stdClass $cm, array $data): void {
         global $DB, $USER;
         access_manager::require_action("grade", $cm);
@@ -65,7 +78,7 @@ final class criterion_service {
             throw new \moodle_exception("invalidaccess", "projectboard");
         }
         $criterion = $DB->get_record("projectboard_criterion", [
-            "id" => (int)($data["criterionid"] ?? 0), "projectboardid" => $activity->id
+            "id" => (int)($data["criterionid"] ?? 0), "projectboardid" => $activity->id,
         ], "*", MUST_EXIST);
         $board = access_manager::require_board((int)($data["boardid"] ?? 0), $activity, $cm, true);
         $userid = (int)($data["userid"] ?? 0);
@@ -82,7 +95,7 @@ final class criterion_service {
             if (!$row) {
                 $DB->insert_record("projectboard_score", (object)($where + [
                     "boardid" => $board->id, "score" => $score,
-                    "gradedby" => $USER->id, "timemodified" => time()
+                    "gradedby" => $USER->id, "timemodified" => time(),
                 ]));
             } else {
                 $row->score = $score;
@@ -104,7 +117,7 @@ final class criterion_service {
             ? (float)$totals->earned / (float)$totals->possible * $activity->grade : 0;
         grading_service::save($activity, $cm, [
             "boardid" => $board->id, "userid" => $userid, "grade" => $grade,
-            "feedback" => clean_param($data["feedback"] ?? "", PARAM_TEXT)
+            "feedback" => clean_param($data["feedback"] ?? "", PARAM_TEXT),
         ]);
     }
 }

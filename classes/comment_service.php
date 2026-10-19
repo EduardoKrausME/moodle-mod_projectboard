@@ -8,11 +8,11 @@
 //
 // Moodle is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * Persisted task discussion.
@@ -24,9 +24,16 @@
 
 namespace mod_projectboard;
 
+// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
 defined("MOODLE_INTERNAL") || die();
 
+/**
+ * Provides comment service functionality.
+ */
 final class comment_service {
+    /**
+     * Handles add operations for Project Board.
+     */
     public static function add(\stdClass $activity, \stdClass $cm, array $data): int {
         global $DB, $USER;
         $task = access_manager::require_task((int)($data["taskid"] ?? 0), $activity, $cm, true);
@@ -45,7 +52,7 @@ final class comment_service {
         $id = $DB->insert_record("projectboard_comment", (object)[
             "taskid" => $task->id, "parentid" => $parentid, "userid" => $USER->id,
             "content" => $content, "format" => $format,
-            "timecreated" => time(), "timemodified" => time()
+            "timecreated" => time(), "timemodified" => time(),
         ]);
         history_service::record((int)$task->id, "comment_added", null, $id);
         notification_service::task_event($activity, $task, "comment", $USER->id);

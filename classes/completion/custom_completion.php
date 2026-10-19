@@ -8,11 +8,11 @@
 //
 // Moodle is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * Custom completion rules displayed by Moodle core.
@@ -24,9 +24,16 @@
 
 namespace mod_projectboard\completion;
 
+// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
 defined("MOODLE_INTERNAL") || die();
 
+/**
+ * Provides custom completion functionality.
+ */
 final class custom_completion extends \core_completion\activity_custom_completion {
+    /**
+     * Handles get defined custom rules operations for Project Board.
+     */
     public static function get_defined_custom_rules(): array {
         return [
             "completioncreated",
@@ -34,10 +41,13 @@ final class custom_completion extends \core_completion\activity_custom_completio
             "completionproject",
             "completionchecklist",
             "completiongraded",
-            "completionminscore"
+            "completionminscore",
         ];
     }
 
+    /**
+     * Handles get state operations for Project Board.
+     */
     public function get_state(string $rule): int {
         global $DB;
         $this->validate_rule($rule);
@@ -52,6 +62,9 @@ final class custom_completion extends \core_completion\activity_custom_completio
         return $met ? COMPLETION_COMPLETE : COMPLETION_INCOMPLETE;
     }
 
+    /**
+     * Handles get custom rule descriptions operations for Project Board.
+     */
     public function get_custom_rule_descriptions(): array {
         global $DB;
         $activity = $DB->get_record("projectboard", ["id" => $this->cm->instance], "*", MUST_EXIST);
@@ -62,7 +75,7 @@ final class custom_completion extends \core_completion\activity_custom_completio
             "completionproject" => "completionprojectrule",
             "completionchecklist" => "completionchecklistrule",
             "completiongraded" => "completiongraderule",
-            "completionminscore" => "completionminscorerule"
+            "completionminscore" => "completionminscorerule",
         ];
         foreach ($keys as $field => $string) {
             $results[$field] = get_string($string, "projectboard", $activity->$field);
@@ -70,6 +83,9 @@ final class custom_completion extends \core_completion\activity_custom_completio
         return $results;
     }
 
+    /**
+     * Handles get sort order operations for Project Board.
+     */
     public function get_sort_order(): array {
         return array_merge(["completionview", "completionusegrade"], self::get_defined_custom_rules());
     }

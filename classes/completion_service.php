@@ -8,11 +8,11 @@
 //
 // Moodle is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * Per-student Moodle completion rules.
@@ -24,9 +24,16 @@
 
 namespace mod_projectboard;
 
+// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
 defined("MOODLE_INTERNAL") || die();
 
+/**
+ * Provides completion service functionality.
+ */
 final class completion_service {
+    /**
+     * Handles completed operations for Project Board.
+     */
     public static function completed(\stdClass $activity, \stdClass $cm, int $userid): bool {
         global $DB;
         if (!$activity->completioncreated && !$activity->completiondone && !$activity->completionproject &&
@@ -75,6 +82,9 @@ final class completion_service {
         return true;
     }
 
+    /**
+     * Handles belongs operations for Project Board.
+     */
     private static function belongs(\stdClass $task, \stdClass $activity, int $userid): bool {
         if ($activity->workmode === "individual") {
             return (int)$task->owneruserid === $userid;
@@ -85,6 +95,9 @@ final class completion_service {
         return true;
     }
 
+    /**
+     * Handles refresh operations for Project Board.
+     */
     public static function refresh(\stdClass $activity, \stdClass $cm, int $userid): void {
         global $DB;
         $course = $DB->get_record("course", ["id" => $activity->course], "*", MUST_EXIST);

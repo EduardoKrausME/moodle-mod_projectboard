@@ -8,11 +8,11 @@
 //
 // Moodle is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * Course module view event.
@@ -24,14 +24,24 @@
 
 namespace mod_projectboard\event;
 
+// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
 defined("MOODLE_INTERNAL") || die();
 
+/**
+ * Provides course module viewed functionality.
+ */
 final class course_module_viewed extends \core\event\course_module_viewed {
+    /**
+     * Handles init operations for Project Board.
+     */
     protected function init() {
         $this->data["crud"] = "r";
         $this->data["edulevel"] = self::LEVEL_PARTICIPATING;
         $this->data["objecttable"] = "projectboard";
     }
+    /**
+     * Handles get objectid mapping operations for Project Board.
+     */
     public static function get_objectid_mapping() {
         return ["db" => "projectboard", "restore" => "projectboard"];
     }

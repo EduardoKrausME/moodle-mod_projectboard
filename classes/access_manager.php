@@ -8,11 +8,11 @@
 //
 // Moodle is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * Board-scoped access controls.
@@ -24,22 +24,38 @@
 
 namespace mod_projectboard;
 
+// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
 defined("MOODLE_INTERNAL") || die();
 
+/**
+ * Provides access manager functionality.
+ */
 final class access_manager {
+    /**
+     * Handles context operations for Project Board.
+     */
     public static function context(\stdClass $cm): \context_module {
         return \context_module::instance($cm->id);
     }
 
+    /**
+     * Handles require view operations for Project Board.
+     */
     public static function require_view(\stdClass $cm): void {
         require_login($cm->course, false, $cm);
         require_capability("mod/projectboard:view", self::context($cm));
     }
 
+    /**
+     * Handles can manage operations for Project Board.
+     */
     public static function can_manage(\stdClass $cm): bool {
         return has_capability("mod/projectboard:manage", self::context($cm));
     }
 
+    /**
+     * Handles can access board operations for Project Board.
+     */
     public static function can_access_board(\stdClass $board, \stdClass $activity, \stdClass $cm, bool $write = false): bool {
         global $USER;
         $context = self::context($cm);
@@ -69,6 +85,9 @@ final class access_manager {
         return false;
     }
 
+    /**
+     * Handles may view user operations for Project Board.
+     */
     private static function may_view_user(int $userid, \stdClass $cm): bool {
         global $USER;
         $context = self::context($cm);
@@ -81,6 +100,9 @@ final class access_manager {
         return (bool)array_intersect(array_keys($mygroups), array_keys($theirgroups));
     }
 
+    /**
+     * Handles require board operations for Project Board.
+     */
     public static function require_board(int $boardid, \stdClass $activity, \stdClass $cm, bool $write = false): \stdClass {
         global $DB;
         $board = $DB->get_record("projectboard_board", ["id" => $boardid], "*", MUST_EXIST);
@@ -90,10 +112,16 @@ final class access_manager {
         return $board;
     }
 
+    /**
+     * Handles require action operations for Project Board.
+     */
     public static function require_action(string $capability, \stdClass $cm): void {
         require_capability("mod/projectboard:" . $capability, self::context($cm));
     }
 
+    /**
+     * Handles may edit operations for Project Board.
+     */
     public static function may_edit(\stdClass $task, \stdClass $cm): bool {
         global $USER;
         $context = self::context($cm);
@@ -101,12 +129,18 @@ final class access_manager {
             ((int)$task->createdby === (int)$USER->id && has_capability("mod/projectboard:editown", $context));
     }
 
+    /**
+     * Handles require edit operations for Project Board.
+     */
     public static function require_edit(\stdClass $task, \stdClass $cm): void {
         if (!self::may_edit($task, $cm)) {
             throw new \required_capability_exception(self::context($cm), "mod/projectboard:editown", CAP_ALLOW, "nopermissions");
         }
     }
 
+    /**
+     * Handles require task operations for Project Board.
+     */
     public static function require_task(int $taskid, \stdClass $activity, \stdClass $cm, bool $write = false): \stdClass {
         global $DB;
         $task = $DB->get_record("projectboard_task", ["id" => $taskid], MUST_EXIST);
@@ -117,6 +151,9 @@ final class access_manager {
         return $task;
     }
 
+    /**
+     * Handles require assignee operations for Project Board.
+     */
     public static function require_assignee(int $userid, \stdClass $board, \stdClass $activity, \stdClass $cm): void {
         global $DB;
         $context = self::context($cm);

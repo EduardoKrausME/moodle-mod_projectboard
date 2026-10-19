@@ -8,11 +8,11 @@
 //
 // Moodle is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * Dependency graph validation.
@@ -24,9 +24,16 @@
 
 namespace mod_projectboard;
 
+// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
 defined("MOODLE_INTERNAL") || die();
 
+/**
+ * Provides dependency service functionality.
+ */
 final class dependency_service {
+    /**
+     * Handles add operations for Project Board.
+     */
     public static function add(\stdClass $activity, \stdClass $cm, int $taskid, int $dependsid): void {
         global $DB;
         $task = access_manager::require_task($taskid, $activity, $cm, true);
@@ -49,6 +56,9 @@ final class dependency_service {
         }
     }
 
+    /**
+     * Handles remove operations for Project Board.
+     */
     public static function remove(\stdClass $activity, \stdClass $cm, int $taskid, int $dependsid): void {
         global $DB;
         $task = access_manager::require_task($taskid, $activity, $cm, true);
@@ -62,6 +72,9 @@ final class dependency_service {
         }
     }
 
+    /**
+     * Handles reaches operations for Project Board.
+     */
     private static function reaches(int $current, int $target, array $visited): bool {
         global $DB;
         if ($current === $target) {
@@ -80,6 +93,9 @@ final class dependency_service {
         return false;
     }
 
+    /**
+     * Handles blockers operations for Project Board.
+     */
     public static function blockers(int $taskid): array {
         global $DB;
         $sql = "SELECT t.id, t.title FROM {projectboard_dep} d

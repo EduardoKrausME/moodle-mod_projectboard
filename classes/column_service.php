@@ -8,11 +8,11 @@
 //
 // Moodle is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * Column management and transition policy.
@@ -24,9 +24,16 @@
 
 namespace mod_projectboard;
 
+// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
 defined("MOODLE_INTERNAL") || die();
 
+/**
+ * Provides column service functionality.
+ */
 final class column_service {
+    /**
+     * Handles execute operations for Project Board.
+     */
     public static function execute(\stdClass $activity, \stdClass $cm, string $action, array $data): void {
         global $DB;
         access_manager::require_action("managecolumns", $cm);
@@ -34,22 +41,22 @@ final class column_service {
         try {
             $transaction = $DB->start_delegated_transaction();
             if ($action === "column_create") {
-            $name = trim(clean_param($data["name"] ?? "", PARAM_TEXT));
-            if (!$name) {
-                throw new \invalid_parameter_exception("Column name required");
-            }
-            $colour = self::colour($data["colour"] ?? "#64748b");
-            $next = (int)$DB->get_field_sql("SELECT COALESCE(MAX(sortorder), -1) + 1 FROM {projectboard_column} WHERE projectboardid = ?",
-                [$activity->id]);
-            $DB->insert_record("projectboard_column", (object)[
-                "projectboardid" => $activity->id, "name" => $name, "colour" => $colour,
-                "sortorder" => $next, "wiplimit" => max(0, (int)($data["wiplimit"] ?? 0)),
-                "archived" => 0, "isdone" => 0, "isreview" => 0,
-                "timecreated" => time(), "timemodified" => time()
-            ]);
+                $name = trim(clean_param($data["name"] ?? "", PARAM_TEXT));
+                if (!$name) {
+                    throw new \invalid_parameter_exception("Column name required");
+                }
+                $colour = self::colour($data["colour"] ?? "#64748b");
+                $next = (int)$DB->get_field_sql("SELECT COALESCE(MAX(sortorder), -1) + 1 FROM {projectboard_column} WHERE projectboardid = ?",
+                    [$activity->id]);
+                $DB->insert_record("projectboard_column", (object)[
+                    "projectboardid" => $activity->id, "name" => $name, "colour" => $colour,
+                    "sortorder" => $next, "wiplimit" => max(0, (int)($data["wiplimit"] ?? 0)),
+                    "archived" => 0, "isdone" => 0, "isreview" => 0,
+                    "timecreated" => time(), "timemodified" => time(),
+                ]);
         } else {
             $column = $DB->get_record("projectboard_column", [
-                "id" => (int)($data["columnid"] ?? 0), "projectboardid" => $activity->id
+                "id" => (int)($data["columnid"] ?? 0), "projectboardid" => $activity->id,
             ], "*", MUST_EXIST);
             if ($action === "column_edit") {
                 $column->name = trim(clean_param($data["name"] ?? $column->name, PARAM_TEXT));
@@ -79,13 +86,13 @@ final class column_service {
                 }
             } else if ($action === "column_transition") {
                 $target = $DB->get_record("projectboard_column", [
-                    "id" => (int)($data["targetid"] ?? 0), "projectboardid" => $activity->id
+                    "id" => (int)($data["targetid"] ?? 0), "projectboardid" => $activity->id,
                 ], "*", MUST_EXIST);
                 $where = ["fromcolumnid" => $column->id, "tocolumnid" => $target->id];
                 $rule = $DB->get_record("projectboard_transition", $where);
                 if (!$rule) {
                     $DB->insert_record("projectboard_transition", (object)($where + [
-                        "projectboardid" => $activity->id, "allowed" => !empty($data["allowed"]) ? 1 : 0
+                        "projectboardid" => $activity->id, "allowed" => !empty($data["allowed"]) ? 1 : 0,
                     ]));
                 } else {
                     $rule->allowed = !empty($data["allowed"]) ? 1 : 0;
@@ -101,6 +108,9 @@ final class column_service {
         }
     }
 
+    /**
+     * Handles colour operations for Project Board.
+     */
     private static function colour(string $colour): string {
         return preg_match("/^#[0-9a-fA-F]{6}$/", $colour) ? $colour : "#64748b";
     }

@@ -8,11 +8,11 @@
 //
 // Moodle is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * Authenticated, board-scoped AJAX commands.
@@ -24,6 +24,7 @@
 
 namespace mod_projectboard\external;
 
+// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
 defined("MOODLE_INTERNAL") || die();
 
 use core_external\external_api;
@@ -31,15 +32,24 @@ use core_external\external_function_parameters;
 use core_external\external_single_structure;
 use core_external\external_value;
 
+/**
+ * Provides operation functionality.
+ */
 final class operation extends external_api {
+    /**
+     * Handles execute parameters operations for Project Board.
+     */
     public static function execute_parameters(): external_function_parameters {
         return new external_function_parameters([
             "cmid" => new external_value(PARAM_INT, "Course module ID"),
             "action" => new external_value(PARAM_ALPHANUMEXT, "Operation"),
-            "payload" => new external_value(PARAM_RAW, "JSON operation payload")
+            "payload" => new external_value(PARAM_RAW, "JSON operation payload"),
         ]);
     }
 
+    /**
+     * Handles execute operations for Project Board.
+     */
     public static function execute(int $cmid, string $action, string $payload): array {
         global $DB, $PAGE, $OUTPUT;
         $params = self::validate_parameters(self::execute_parameters(),
@@ -172,6 +182,9 @@ final class operation extends external_api {
         return ["html" => $html, "dialog" => $dialog, "taskid" => $taskid];
     }
 
+    /**
+     * Handles refresh completion operations for Project Board.
+     */
     private static function refresh_completion(\stdClass $activity, \stdClass $cm, \stdClass $board): void {
         global $USER;
         if ($activity->workmode === "individual") {
@@ -189,11 +202,14 @@ final class operation extends external_api {
         }
     }
 
+    /**
+     * Handles execute returns operations for Project Board.
+     */
     public static function execute_returns(): external_single_structure {
         return new external_single_structure([
             "html" => new external_value(PARAM_RAW, "Updated Mustache board"),
             "dialog" => new external_value(PARAM_RAW, "Updated Mustache task details"),
-            "taskid" => new external_value(PARAM_INT, "Selected task ID")
+            "taskid" => new external_value(PARAM_INT, "Selected task ID"),
         ]);
     }
 }

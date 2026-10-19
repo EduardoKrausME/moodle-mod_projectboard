@@ -8,11 +8,11 @@
 //
 // Moodle is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * Task checklist management.
@@ -24,9 +24,16 @@
 
 namespace mod_projectboard;
 
+// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
 defined("MOODLE_INTERNAL") || die();
 
+/**
+ * Provides checklist service functionality.
+ */
 final class checklist_service {
+    /**
+     * Handles execute operations for Project Board.
+     */
     public static function execute(\stdClass $activity, \stdClass $cm, string $action, array $data): void {
         global $DB;
         $task = access_manager::require_task((int)($data["taskid"] ?? 0), $activity, $cm, true);
@@ -48,12 +55,12 @@ final class checklist_service {
             $id = $DB->insert_record("projectboard_check", (object)[
                 "taskid" => $task->id, "title" => $title, "userid" => $userid,
                 "done" => 0, "required" => 1, "sortorder" => $max,
-                "duedate" => max(0, (int)($data["duedate"] ?? 0)), "timemodified" => time()
+                "duedate" => max(0, (int)($data["duedate"] ?? 0)), "timemodified" => time(),
             ]);
             history_service::record((int)$task->id, "check_added", null, $id);
         } else {
             $item = $DB->get_record("projectboard_check", [
-                "id" => (int)($data["itemid"] ?? 0), "taskid" => $task->id
+                "id" => (int)($data["itemid"] ?? 0), "taskid" => $task->id,
             ], "*", MUST_EXIST);
             if ($action === "check_toggle") {
                 $item->done = !empty($data["done"]) ? 1 : 0;
@@ -86,6 +93,9 @@ final class checklist_service {
         }
     }
 
+    /**
+     * Handles progress operations for Project Board.
+     */
     public static function progress(int $taskid): array {
         global $DB;
         $items = array_values($DB->get_records("projectboard_check", ["taskid" => $taskid], "sortorder ASC, id ASC"));
