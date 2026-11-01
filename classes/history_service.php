@@ -24,9 +24,6 @@
 
 namespace mod_projectboard;
 
-// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Provides history service functionality.
  */

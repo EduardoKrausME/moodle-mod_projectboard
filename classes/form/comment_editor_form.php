@@ -24,7 +24,6 @@
 
 namespace mod_projectboard\form;
 
-// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
 use moodleform;
 
 defined('MOODLE_INTERNAL') || die();

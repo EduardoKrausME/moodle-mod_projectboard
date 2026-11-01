@@ -22,9 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Guarded Moodle class.
 defined('MOODLE_INTERNAL') || die();
-
 require_once($CFG->dirroot . "/mod/projectboard/backup/moodle2/restore_projectboard_stepslib.php");
 
 /**
