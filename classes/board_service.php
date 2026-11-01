@@ -24,8 +24,9 @@
 
 namespace mod_projectboard;
 
-// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
-defined("MOODLE_INTERNAL") || die();
+use core\lock\lock_config;
+use moodle_exception;
+use stdClass;
 
 /**
  * Provides board service functionality.
@@ -62,11 +63,11 @@ final class board_service {
     /**
      * Handles ensure operations for Project Board.
      */
-    public static function ensure(\stdClass $activity, int $userid = 0, int $groupid = 0): \stdClass {
+    public static function ensure(stdClass $activity, int $userid = 0, int $groupid = 0): stdClass {
         global $DB;
         if ($activity->workmode === "individual" && !$userid ||
                 $activity->workmode === "groups" && !$groupid) {
-            throw new \moodle_exception("invalidaccess", "projectboard");
+            throw new moodle_exception("invalidaccess", "projectboard");
         }
         if ($activity->workmode === "collective") {
             $userid = 0;
@@ -80,10 +81,10 @@ final class board_service {
         if ($board = $DB->get_record("projectboard_board", $where)) {
             return $board;
         }
-        $factory = \core\lock\lock_config::get_lock_factory("mod_projectboard");
+        $factory = lock_config::get_lock_factory("mod_projectboard");
         $lock = $factory->get_lock("newboard_" . $activity->id . "_" . $userid . "_" . $groupid, 15);
         if (!$lock) {
-            throw new \moodle_exception("conflict", "projectboard");
+            throw new moodle_exception("conflict", "projectboard");
         }
         try {
             if ($board = $DB->get_record("projectboard_board", $where)) {
@@ -104,7 +105,7 @@ final class board_service {
     /**
      * Handles available operations for Project Board.
      */
-    public static function available(\stdClass $activity, \stdClass $cm): array {
+    public static function available(stdClass $activity, stdClass $cm): array {
         global $DB, $USER;
         $boards = [];
         if ($activity->workmode === "collective") {
@@ -142,7 +143,7 @@ final class board_service {
     /**
      * Handles columns operations for Project Board.
      */
-    public static function columns(\stdClass $activity): array {
+    public static function columns(stdClass $activity): array {
         global $DB;
         return array_values($DB->get_records("projectboard_column",
             ["projectboardid" => $activity->id, "archived" => 0], "sortorder ASC, id ASC"));

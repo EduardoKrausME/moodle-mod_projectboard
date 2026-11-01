@@ -24,15 +24,15 @@
 
 namespace mod_projectboard\form;
 
-// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
-defined("MOODLE_INTERNAL") || die();
+use moodleform;
 
+defined("MOODLE_INTERNAL") || die();
 require_once($CFG->libdir . "/formslib.php");
 
 /**
  * Provides evidence form functionality.
  */
-final class evidence_form extends \moodleform {
+final class evidence_form extends moodleform {
     /**
      * Handles definition for Project Board.
      */

@@ -24,8 +24,8 @@
 
 namespace mod_projectboard;
 
-// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
-defined("MOODLE_INTERNAL") || die();
+use moodle_exception;
+use stdClass;
 
 /**
  * Provides dependency service functionality.
@@ -34,7 +34,7 @@ final class dependency_service {
     /**
      * Handles add operations for Project Board.
      */
-    public static function add(\stdClass $activity, \stdClass $cm, int $taskid, int $dependsid): void {
+    public static function add(stdClass $activity, stdClass $cm, int $taskid, int $dependsid): void {
         global $DB;
         $task = access_manager::require_task($taskid, $activity, $cm, true);
         access_manager::require_edit($task, $cm);
@@ -44,7 +44,7 @@ final class dependency_service {
             $transaction = $DB->start_delegated_transaction();
             if ($taskid === $dependsid || (int)$task->boardid !== (int)$other->boardid ||
                     self::reaches($dependsid, $taskid, [])) {
-                throw new \moodle_exception("cyclicdependency", "projectboard");
+                throw new moodle_exception("cyclicdependency", "projectboard");
             }
             if (!$DB->record_exists("projectboard_dep", ["taskid" => $taskid, "dependsid" => $dependsid])) {
                 $DB->insert_record("projectboard_dep", (object)["taskid" => $taskid, "dependsid" => $dependsid]);
@@ -59,7 +59,7 @@ final class dependency_service {
     /**
      * Handles remove operations for Project Board.
      */
-    public static function remove(\stdClass $activity, \stdClass $cm, int $taskid, int $dependsid): void {
+    public static function remove(stdClass $activity, stdClass $cm, int $taskid, int $dependsid): void {
         global $DB;
         $task = access_manager::require_task($taskid, $activity, $cm, true);
         access_manager::require_edit($task, $cm);

@@ -24,8 +24,8 @@
 
 namespace mod_projectboard;
 
-// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
-defined("MOODLE_INTERNAL") || die();
+use invalid_parameter_exception;
+use stdClass;
 
 /**
  * Provides comment service functionality.
@@ -34,7 +34,7 @@ final class comment_service {
     /**
      * Handles add operations for Project Board.
      */
-    public static function add(\stdClass $activity, \stdClass $cm, array $data): int {
+    public static function add(stdClass $activity, stdClass $cm, array $data): int {
         global $DB, $USER;
         $task = access_manager::require_task((int)($data["taskid"] ?? 0), $activity, $cm, true);
         access_manager::require_action("comment", $cm);
@@ -43,11 +43,11 @@ final class comment_service {
         $content = trim(clean_param($data["content"] ?? "",
             $format === FORMAT_HTML ? PARAM_CLEANHTML : PARAM_TEXT));
         if (!$content) {
-            throw new \invalid_parameter_exception("Empty comment");
+            throw new invalid_parameter_exception("Empty comment");
         }
         $parentid = (int)($data["parentid"] ?? 0);
         if ($parentid && !$DB->record_exists("projectboard_comment", ["id" => $parentid, "taskid" => $task->id])) {
-            throw new \invalid_parameter_exception("Reply does not belong to task");
+            throw new invalid_parameter_exception("Reply does not belong to task");
         }
         $id = $DB->insert_record("projectboard_comment", (object)[
             "taskid" => $task->id, "parentid" => $parentid, "userid" => $USER->id,

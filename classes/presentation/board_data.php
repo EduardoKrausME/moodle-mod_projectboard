@@ -24,8 +24,15 @@
 
 namespace mod_projectboard\presentation;
 
-// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
-defined("MOODLE_INTERNAL") || die();
+use context_module;
+use mod_projectboard\access_manager;
+use mod_projectboard\board_service;
+use mod_projectboard\checklist_service;
+use mod_projectboard\criterion_service;
+use mod_projectboard\dependency_service;
+use mod_projectboard\history_service;
+use moodle_url;
+use stdClass;
 
 /**
  * Provides board data functionality.
@@ -34,9 +41,9 @@ final class board_data {
     /**
      * Handles page for Project Board.
      */
-    public static function page(\stdClass $activity, \stdClass $cm, ?\stdClass $board, array $boards): array {
+    public static function page(stdClass $activity, stdClass $cm, ?stdClass $board, array $boards): array {
         global $USER;
-        $context = \context_module::instance($cm->id);
+        $context = context_module::instance($cm->id);
         $options = [];
         foreach ($boards as $candidate) {
             $options[] = [
@@ -44,7 +51,7 @@ final class board_data {
                 "selected" => $board && $candidate->id == $board->id,
             ];
         }
-        $canmanage = \mod_projectboard\access_manager::can_manage($cm);
+        $canmanage = access_manager::can_manage($cm);
         $canadd = has_capability("mod/projectboard:addtask", $context) && ($activity->allowcreate || $canmanage);
         $canmove = has_capability("mod/projectboard:movetask", $context) && ($activity->allowmove || $canmanage);
         return [
@@ -64,11 +71,11 @@ final class board_data {
             "criteria" => array_map(static function($criterion) {
                 return ["id" => (int)$criterion->id, "name" => $criterion->name,
                     "maxscore" => $criterion->maxscore];
-            }, array_values(\mod_projectboard\criterion_service::all($activity))),
-            "reporturl" => (new \moodle_url("/mod/projectboard/report.php", ["id" => $cm->id]))->out(false),
+            }, array_values(criterion_service::all($activity))),
+            "reporturl" => (new moodle_url("/mod/projectboard/report.php", ["id" => $cm->id]))->out(false),
             "columnoptions" => array_map(static function($col) {
                 return ["id" => $col->id, "name" => $col->name];
-            }, \mod_projectboard\board_service::columns($activity)),
+            }, board_service::columns($activity)),
             "strings" => self::strings(),
         ];
     }
@@ -76,14 +83,14 @@ final class board_data {
     /**
      * Handles board for Project Board.
      */
-    public static function board(\stdClass $activity, \stdClass $cm, \stdClass $board): array {
+    public static function board(stdClass $activity, stdClass $cm, stdClass $board): array {
         global $DB;
-        $context = \context_module::instance($cm->id);
-        $manage = \mod_projectboard\access_manager::can_manage($cm);
+        $context = context_module::instance($cm->id);
+        $manage = access_manager::can_manage($cm);
         $canmove = has_capability("mod/projectboard:movetask", $context) && ($activity->allowmove || $manage);
         $canadd = has_capability("mod/projectboard:addtask", $context) && ($activity->allowcreate || $manage);
         $columns = [];
-        $all = \mod_projectboard\board_service::columns($activity);
+        $all = board_service::columns($activity);
         $tasks = $DB->get_records("projectboard_task",
             ["boardid" => $board->id, "archived" => 0], "sortorder ASC, id ASC");
         foreach ($all as $column) {
@@ -92,7 +99,7 @@ final class board_data {
                 if ((int)$task->columnid !== (int)$column->id) {
                     continue;
                 }
-                $check = \mod_projectboard\checklist_service::progress((int)$task->id);
+                $check = checklist_service::progress((int)$task->id);
                 $count = $DB->count_records("projectboard_comment", ["taskid" => $task->id]);
                 $users = $DB->get_fieldset_select("projectboard_assignee", "userid", "taskid = ?", [$task->id]);
                 $assignees = [];
@@ -102,7 +109,7 @@ final class board_data {
                         $assignees[] = ["name" => fullname($person), "id" => (int)$person->id];
                     }
                 }
-                $blocked = \mod_projectboard\dependency_service::blockers((int)$task->id);
+                $blocked = dependency_service::blockers((int)$task->id);
                 $cards[] = [
                     "id" => (int)$task->id, "title" => $task->title,
                     "priority" => $task->priority,
@@ -116,7 +123,7 @@ final class board_data {
                     "checkpercent" => $check["percent"], "hascheck" => $check["total"] > 0,
                     "assignees" => $assignees, "hasassignees" => !empty($assignees),
                     "version" => (int)$task->version,
-                    "canedit" => \mod_projectboard\access_manager::may_edit($task, $cm),
+                    "canedit" => access_manager::may_edit($task, $cm),
                     "canmove" => $canmove,
                     "positions" => array_map(static function($other) use ($column) {
                         return ["id" => (int)$other->id, "name" => $other->name,
@@ -160,14 +167,14 @@ final class board_data {
     /**
      * Handles task for Project Board.
      */
-    public static function task(\stdClass $activity, \stdClass $cm, \stdClass $task): array {
+    public static function task(stdClass $activity, stdClass $cm, stdClass $task): array {
         global $DB;
-        $context = \context_module::instance($cm->id);
-        $canedit = \mod_projectboard\access_manager::may_edit($task, $cm);
+        $context = context_module::instance($cm->id);
+        $canedit = access_manager::may_edit($task, $cm);
         $cancomment = has_capability("mod/projectboard:comment", $context);
         $canreview = has_capability("mod/projectboard:review", $context);
         $canfile = has_capability("mod/projectboard:addevidence", $context);
-        $check = \mod_projectboard\checklist_service::progress((int)$task->id);
+        $check = checklist_service::progress((int)$task->id);
         $items = [];
         foreach ($check["items"] as $item) {
             $items[] = [
@@ -184,14 +191,14 @@ final class board_data {
             $commentfiles = [];
             foreach (get_file_storage()->get_area_files($context->id, "mod_projectboard",
                     "commentattachment", $entry->id, "id", false) as $file) {
-                $url = \moodle_url::make_pluginfile_url($context->id, "mod_projectboard",
+                $url = moodle_url::make_pluginfile_url($context->id, "mod_projectboard",
                     "commentattachment", $entry->id, $file->get_filepath(), $file->get_filename());
                 $commentfiles[] = ["filename" => $file->get_filename(), "url" => $url->out(false)];
             }
             $comments[] = [
                 "id" => (int)$entry->id, "parentid" => (int)$entry->parentid,
                 "files" => $commentfiles,
-                "replyurl" => (new \moodle_url("/mod/projectboard/comment.php", [
+                "replyurl" => (new moodle_url("/mod/projectboard/comment.php", [
                     "id" => $cm->id, "taskid" => $task->id, "parentid" => $entry->id,
                 ]))->out(false),
                 "author" => $author ? fullname($author) : "",
@@ -206,7 +213,7 @@ final class board_data {
             $files = get_file_storage()->get_area_files($context->id,
                 "mod_projectboard", "evidence", $evidence->id, "id", false);
             foreach ($files as $file) {
-                $url = \moodle_url::make_pluginfile_url($context->id, "mod_projectboard",
+                $url = moodle_url::make_pluginfile_url($context->id, "mod_projectboard",
                     "evidence", $evidence->id, $file->get_filepath(), $file->get_filename());
                 $evidences[] = [
                     "id" => (int)$evidence->id, "description" => $evidence->description,
@@ -216,7 +223,7 @@ final class board_data {
         }
         $users = $DB->get_fieldset_select("projectboard_assignee", "userid", "taskid = ?", [$task->id]);
         $dependencies = [];
-        $blocked = \mod_projectboard\dependency_service::blockers((int)$task->id);
+        $blocked = dependency_service::blockers((int)$task->id);
         foreach ($DB->get_records("projectboard_dep", ["taskid" => $task->id]) as $dependency) {
             $dependson = $DB->get_record("projectboard_task", ["id" => $dependency->dependsid], "id, title");
             if ($dependson) {
@@ -225,8 +232,8 @@ final class board_data {
             }
         }
         $history = [];
-        if ($activity->showhistory || \mod_projectboard\access_manager::can_manage($cm)) {
-            foreach (\mod_projectboard\history_service::entries((int)$task->id) as $entry) {
+        if ($activity->showhistory || access_manager::can_manage($cm)) {
+            foreach (history_service::entries((int)$task->id) as $entry) {
                 $history[] = [
                     "action" => $entry->action, "userid" => (int)$entry->userid,
                     "when" => userdate($entry->timecreated),
@@ -235,7 +242,7 @@ final class board_data {
             }
         }
         $columns = [];
-        foreach (\mod_projectboard\board_service::columns($activity) as $column) {
+        foreach (board_service::columns($activity) as $column) {
             $columns[] = ["id" => (int)$column->id, "name" => $column->name,
                 "selected" => $column->id == $task->columnid];
         }
@@ -243,7 +250,7 @@ final class board_data {
             "id" => (int)$task->id, "title" => $task->title,
             "description" => $task->description,
             "formatteddescription" => format_text($task->description, $task->descriptionformat,
-                ["context" => $context]), "editorurl" => (new \moodle_url(
+                ["context" => $context]), "editorurl" => (new moodle_url(
                 "/mod/projectboard/task.php", ["id" => $cm->id, "taskid" => $task->id]))->out(false),
             "priority" => $task->priority, "tags" => $task->tags,
             "startdate" => $task->startdate ? userdate($task->startdate, "%Y-%m-%dT%H:%M") : "",
@@ -253,16 +260,16 @@ final class board_data {
             "canedit" => $canedit, "cancomment" => $cancomment, "canreview" => $canreview,
             "canfile" => $canfile, "canmove" => has_capability("mod/projectboard:movetask", $context),
             "canassign" => has_capability("mod/projectboard:assign", $context) &&
-                ($activity->allowassign || \mod_projectboard\access_manager::can_manage($cm)),
+                ($activity->allowassign || access_manager::can_manage($cm)),
             "canadd" => has_capability("mod/projectboard:addtask", $context),
             "columns" => $columns, "checklist" => $items, "checkpercent" => $check["percent"],
             "comments" => $comments, "evidences" => $evidences,
             "dependencies" => $dependencies, "blocked" => !empty($blocked),
             "assigneeids" => implode(",", $users),
-            "commenturl" => (new \moodle_url("/mod/projectboard/comment.php", [
+            "commenturl" => (new moodle_url("/mod/projectboard/comment.php", [
                 "id" => $cm->id, "taskid" => $task->id,
             ]))->out(false),
-            "evidenceurl" => (new \moodle_url("/mod/projectboard/evidence.php", [
+            "evidenceurl" => (new moodle_url("/mod/projectboard/evidence.php", [
                 "id" => $cm->id, "taskid" => $task->id,
             ]))->out(false),
             "strings" => self::strings(),

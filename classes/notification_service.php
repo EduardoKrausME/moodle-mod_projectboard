@@ -24,8 +24,13 @@
 
 namespace mod_projectboard;
 
-// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
-defined("MOODLE_INTERNAL") || die();
+use context_module;
+use core\message\message;
+use core_user;
+use dml_write_exception;
+use moodle_url;
+use stdClass;
+use Throwable;
 
 /**
  * Provides notification service functionality.
@@ -34,8 +39,8 @@ final class notification_service {
     /**
      * Handles send for Project Board.
      */
-    public static function send(\stdClass $activity, \stdClass $task, int $userid, string $provider,
-            string $periodkey): void {
+    public static function send(stdClass $activity, stdClass $task, int $userid, string $provider,
+                                string   $periodkey): void {
         global $DB;
         if (!$activity->notifications || !$userid || !in_array($provider,
                 ["assignment", "comment", "deadline", "review", "dependency"], true)) {
@@ -46,13 +51,13 @@ final class notification_service {
         if ($DB->record_exists("projectboard_notice", $where)) {
             return;
         }
-        $context = \context_module::instance(get_coursemodule_from_instance("projectboard", $activity->id)->id);
+        $context = context_module::instance(get_coursemodule_from_instance("projectboard", $activity->id)->id);
         if (!is_enrolled($context, $userid, "mod/projectboard:view", true)) {
             return;
         }
-        $target = \core_user::get_user($userid);
-        $sender = \core_user::get_noreply_user();
-        $message = new \core\message\message();
+        $target = core_user::get_user($userid);
+        $sender = core_user::get_noreply_user();
+        $message = new message();
         $message->component = "mod_projectboard";
         $message->name = $provider;
         $message->userfrom = $sender;
@@ -64,21 +69,21 @@ final class notification_service {
         $message->fullmessagehtml = "";
         $message->smallmessage = $message->fullmessage;
         $message->notification = 1;
-        $message->contexturl = (new \moodle_url("/mod/projectboard/view.php", [
+        $message->contexturl = (new moodle_url("/mod/projectboard/view.php", [
             "id" => get_coursemodule_from_instance("projectboard", $activity->id)->id, "taskid" => $task->id,
         ]))->out(false);
         $message->contexturlname = $activity->name;
         $transaction = $DB->start_delegated_transaction();
         try {
             $id = $DB->insert_record("projectboard_notice", (object)($where + ["timecreated" => time()]));
-        } catch (\dml_write_exception $e) {
+        } catch (dml_write_exception $e) {
             $transaction->allow_commit();
             return;
         }
         $transaction->allow_commit();
         try {
             message_send($message);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $DB->delete_records("projectboard_notice", ["id" => $id]);
             throw $e;
         }
@@ -87,8 +92,8 @@ final class notification_service {
     /**
      * Handles task event for Project Board.
      */
-    public static function task_event(\stdClass $activity, \stdClass $task,
-            string $provider, int $exclude = 0): void {
+    public static function task_event(stdClass $activity, stdClass $task,
+                                      string   $provider, int $exclude = 0): void {
         global $DB;
         if (!$activity->notifications) {
             return;

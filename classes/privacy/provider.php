@@ -24,10 +24,15 @@
 
 namespace mod_projectboard\privacy;
 
+use context;
 use core_privacy\local\metadata\collection;
-
-// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
-defined("MOODLE_INTERNAL") || die();
+use core_privacy\local\request\approved_contextlist;
+use core_privacy\local\request\approved_userlist;
+use core_privacy\local\request\contextlist;
+use core_privacy\local\request\core_userlist_provider;
+use core_privacy\local\request\userlist;
+use core_privacy\local\request\writer;
+use stdClass;
 
 /**
  * Provides provider functionality.
@@ -35,7 +40,7 @@ defined("MOODLE_INTERNAL") || die();
 final class provider implements
         \core_privacy\local\metadata\provider,
         \core_privacy\local\request\plugin\provider,
-        \core_privacy\local\request\core_userlist_provider {
+        core_userlist_provider {
     /** @var array<string, string> User reference fields by storage table. */
     private const TABLES = [
         "projectboard_task" => "createdby",
@@ -79,7 +84,7 @@ final class provider implements
     /**
      * Handles activity for Project Board.
      */
-    private static function activity(\context $context): ?\stdClass {
+    private static function activity(context $context): ?stdClass {
         global $DB;
         if ($context->contextlevel != CONTEXT_MODULE) {
             return null;
@@ -91,7 +96,7 @@ final class provider implements
     /**
      * Handles users for Project Board.
      */
-    private static function users(\stdClass $activity): array {
+    private static function users(stdClass $activity): array {
         global $DB;
         $sql = "SELECT t.id FROM {projectboard_task} t
                   JOIN {projectboard_board} b ON b.id = t.boardid
@@ -140,15 +145,15 @@ final class provider implements
     /**
      * Handles get contexts for userid for Project Board.
      */
-    public static function get_contexts_for_userid(int $userid): \core_privacy\local\request\contextlist {
+    public static function get_contexts_for_userid(int $userid): contextlist {
         global $DB;
-        $contexts = new \core_privacy\local\request\contextlist();
+        $contexts = new contextlist();
         $sql = "SELECT ctx.id FROM {context} ctx
                   JOIN {course_modules} cm ON cm.id = ctx.instanceid
                   JOIN {modules} m ON m.id = cm.module
                  WHERE ctx.contextlevel = :level AND m.name = :name";
         foreach ($DB->get_records_sql($sql, ["level" => CONTEXT_MODULE, "name" => "projectboard"]) as $row) {
-            $activity = self::activity(\context::instance_by_id($row->id));
+            $activity = self::activity(context::instance_by_id($row->id));
             if ($activity && in_array($userid, self::users($activity), true)) {
                 $contexts->add_context($row->id);
             }
@@ -159,7 +164,7 @@ final class provider implements
     /**
      * Handles get users in context for Project Board.
      */
-    public static function get_users_in_context(\core_privacy\local\request\userlist $userlist): void {
+    public static function get_users_in_context(userlist $userlist): void {
         $activity = self::activity($userlist->get_context());
         if ($activity) {
             $userlist->add_users(self::users($activity));
@@ -169,7 +174,7 @@ final class provider implements
     /**
      * Handles export user data for Project Board.
      */
-    public static function export_user_data(\core_privacy\local\request\approved_contextlist $contextlist): void {
+    public static function export_user_data(approved_contextlist $contextlist): void {
         global $DB;
         $userid = (int)$contextlist->get_user()->id;
         foreach ($contextlist->get_contexts() as $context) {
@@ -218,7 +223,7 @@ final class provider implements
                     $data->criteria[] = $score;
                 }
             }
-            $writer = \core_privacy\local\request\writer::with_context($context);
+            $writer = writer::with_context($context);
             $writer->export_data([get_string("pluginname", "projectboard")], $data);
             foreach ($data->evidence as $evidence) {
                 $writer->export_area_files([get_string("evidence", "projectboard")],
@@ -230,7 +235,7 @@ final class provider implements
     /**
      * Handles delete data for all users in context for Project Board.
      */
-    public static function delete_data_for_all_users_in_context(\context $context): void {
+    public static function delete_data_for_all_users_in_context(context $context): void {
         $activity = self::activity($context);
         if ($activity) {
             foreach (self::users($activity) as $userid) {
@@ -242,7 +247,7 @@ final class provider implements
     /**
      * Handles delete data for user for Project Board.
      */
-    public static function delete_data_for_user(\core_privacy\local\request\approved_contextlist $contextlist): void {
+    public static function delete_data_for_user(approved_contextlist $contextlist): void {
         foreach ($contextlist->get_contexts() as $context) {
             $activity = self::activity($context);
             if ($activity) {
@@ -254,7 +259,7 @@ final class provider implements
     /**
      * Handles delete data for users for Project Board.
      */
-    public static function delete_data_for_users(\core_privacy\local\request\approved_userlist $userlist): void {
+    public static function delete_data_for_users(approved_userlist $userlist): void {
         $activity = self::activity($userlist->get_context());
         if ($activity) {
             foreach ($userlist->get_userids() as $userid) {
@@ -266,7 +271,7 @@ final class provider implements
     /**
      * Handles erase for Project Board.
      */
-    private static function erase(\stdClass $activity, \context $context, int $userid): void {
+    private static function erase(stdClass $activity, context $context, int $userid): void {
         global $DB;
         $transaction = $DB->start_delegated_transaction();
         foreach ($DB->get_records("projectboard_board", ["projectboardid" => $activity->id]) as $board) {

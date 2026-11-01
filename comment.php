@@ -22,6 +22,11 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_projectboard\access_manager;
+use mod_projectboard\comment_service;
+use mod_projectboard\completion_service;
+use mod_projectboard\form\comment_editor_form;
+
 require_once("../../config.php");
 require_once($CFG->libdir . "/filelib.php");
 
@@ -31,10 +36,10 @@ $parentid = optional_param("parentid", 0, PARAM_INT);
 $cm = get_coursemodule_from_id("projectboard", $cmid, 0, false, MUST_EXIST);
 $activity = $DB->get_record("projectboard", ["id" => $cm->instance], "*", MUST_EXIST);
 require_login($cm->course, false, $cm);
-\mod_projectboard\access_manager::require_view($cm);
-\mod_projectboard\access_manager::require_action("comment", $cm);
-$task = \mod_projectboard\access_manager::require_task($taskid, $activity, $cm, true);
-$context = \context_module::instance($cm->id);
+access_manager::require_view($cm);
+access_manager::require_action("comment", $cm);
+$task = access_manager::require_task($taskid, $activity, $cm, true);
+$context = context_module::instance($cm->id);
 if ($parentid && !$DB->record_exists("projectboard_comment", [
     "id" => $parentid, "taskid" => $taskid,
 ])) {
@@ -48,7 +53,7 @@ $PAGE->set_cm($cm);
 $PAGE->set_context($context);
 $PAGE->set_title(get_string("commentwithfiles", "projectboard"));
 $PAGE->set_heading($activity->name);
-$form = new \mod_projectboard\form\comment_editor_form($url, [
+$form = new comment_editor_form($url, [
     "cmid" => $cmid, "taskid" => $taskid, "parentid" => $parentid, "context" => $context,
 ]);
 $redirect = new moodle_url("/mod/projectboard/view.php", [
@@ -59,7 +64,7 @@ if ($form->is_cancelled()) {
 }
 if ($data = $form->get_data()) {
     $draftid = (int)$data->files;
-    $id = \mod_projectboard\comment_service::add($activity, $cm, [
+    $id = comment_service::add($activity, $cm, [
         "taskid" => $taskid, "parentid" => $parentid,
         "content" => $data->content_editor["text"],
         "format" => (int)$data->content_editor["format"],
@@ -67,7 +72,7 @@ if ($data = $form->get_data()) {
     file_save_draft_area_files($draftid, $context->id,
         "mod_projectboard", "commentattachment", $id,
         ["subdirs" => 0, "maxfiles" => 5]);
-    \mod_projectboard\completion_service::refresh($activity, $cm, (int)$USER->id);
+    completion_service::refresh($activity, $cm, (int)$USER->id);
     redirect($redirect);
 }
 echo $OUTPUT->header();

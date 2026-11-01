@@ -24,8 +24,8 @@
 
 namespace mod_projectboard;
 
-// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
-defined("MOODLE_INTERNAL") || die();
+use moodle_exception;
+use stdClass;
 
 /**
  * Provides review service functionality.
@@ -34,14 +34,14 @@ final class review_service {
     /**
      * Handles submit for Project Board.
      */
-    public static function submit(\stdClass $activity, \stdClass $cm, array $data): void {
+    public static function submit(stdClass $activity, stdClass $cm, array $data): void {
         global $DB;
         $task = access_manager::require_task((int)($data["taskid"] ?? 0), $activity, $cm, true);
         access_manager::require_action("movetask", $cm);
         $reviewcolumn = $DB->get_record("projectboard_column",
             ["projectboardid" => $activity->id, "isreview" => 1, "archived" => 0]);
         if (!$reviewcolumn) {
-            throw new \moodle_exception("invalidtransition", "projectboard");
+            throw new moodle_exception("invalidtransition", "projectboard");
         }
         task_service::move($activity, $cm, [
             "taskid" => $task->id, "columnid" => $reviewcolumn->id,
@@ -53,14 +53,14 @@ final class review_service {
     /**
      * Handles evaluate for Project Board.
      */
-    public static function evaluate(\stdClass $activity, \stdClass $cm,
-            array $data, bool $approve): void {
+    public static function evaluate(stdClass $activity, stdClass $cm,
+                                    array    $data, bool $approve): void {
         global $DB;
         access_manager::require_action("review", $cm);
         $task = access_manager::require_task((int)($data["taskid"] ?? 0), $activity, $cm, true);
         $source = $DB->get_record("projectboard_column", ["id" => $task->columnid], "*", MUST_EXIST);
         if (!$source->isreview) {
-            throw new \moodle_exception("invalidtransition", "projectboard");
+            throw new moodle_exception("invalidtransition", "projectboard");
         }
         $columns = board_service::columns($activity);
         $target = null;
@@ -72,7 +72,7 @@ final class review_service {
             }
         }
         if (!$target) {
-            throw new \moodle_exception("invalidtransition", "projectboard");
+            throw new moodle_exception("invalidtransition", "projectboard");
         }
         task_service::move($activity, $cm, [
             "taskid" => $task->id, "columnid" => $target->id,

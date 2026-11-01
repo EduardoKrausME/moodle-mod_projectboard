@@ -24,8 +24,9 @@
 
 namespace mod_projectboard;
 
-// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
-defined("MOODLE_INTERNAL") || die();
+use invalid_parameter_exception;
+use moodle_exception;
+use stdClass;
 
 /**
  * Provides column service functionality.
@@ -34,7 +35,7 @@ final class column_service {
     /**
      * Handles execute operations for Project Board.
      */
-    public static function execute(\stdClass $activity, \stdClass $cm, string $action, array $data): void {
+    public static function execute(stdClass $activity, stdClass $cm, string $action, array $data): void {
         global $DB;
         access_manager::require_action("managecolumns", $cm);
         $lock = task_service::activity_lock((int)$activity->id);
@@ -43,7 +44,7 @@ final class column_service {
             if ($action === "column_create") {
                 $name = trim(clean_param($data["name"] ?? "", PARAM_TEXT));
                 if (!$name) {
-                    throw new \invalid_parameter_exception("Column name required");
+                    throw new invalid_parameter_exception("Column name required");
                 }
                 $colour = self::colour($data["colour"] ?? "#64748b");
                 $next = (int)$DB->get_field_sql(
@@ -63,7 +64,7 @@ final class column_service {
                 if ($action === "column_edit") {
                     $column->name = trim(clean_param($data["name"] ?? $column->name, PARAM_TEXT));
                     if (!$column->name) {
-                        throw new \invalid_parameter_exception("Column name required");
+                        throw new invalid_parameter_exception("Column name required");
                     }
                     $column->colour = self::colour($data["colour"] ?? $column->colour);
                     $column->wiplimit = max(0, (int)($data["wiplimit"] ?? $column->wiplimit));
@@ -71,7 +72,7 @@ final class column_service {
                     $DB->update_record("projectboard_column", $column);
                 } else if ($action === "column_archive") {
                     if ($DB->record_exists("projectboard_task", ["columnid" => $column->id, "archived" => 0])) {
-                        throw new \moodle_exception("invalidaccess", "projectboard");
+                        throw new moodle_exception("invalidaccess", "projectboard");
                     }
                     $column->archived = 1;
                     $DB->update_record("projectboard_column", $column);
@@ -101,7 +102,7 @@ final class column_service {
                         $DB->update_record("projectboard_transition", $rule);
                     }
                 } else {
-                    throw new \invalid_parameter_exception("Invalid column operation");
+                    throw new invalid_parameter_exception("Invalid column operation");
                 }
             }
             $transaction->allow_commit();

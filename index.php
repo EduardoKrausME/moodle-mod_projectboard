@@ -30,12 +30,12 @@ require_login($course);
 $PAGE->set_url(new moodle_url("/mod/projectboard/index.php", ["id" => $id]));
 $PAGE->set_title(get_string("modulenameplural", "projectboard"));
 $PAGE->set_heading($course->fullname);
-$PAGE->set_context(\context_course::instance($id));
+$PAGE->set_context(context_course::instance($id));
 $modules = get_all_instances_in_course("projectboard", $course);
 $rows = [];
 foreach ($modules as $module) {
     $cm = get_coursemodule_from_instance("projectboard", $module->id, $course->id);
-    if ($cm && has_capability("mod/projectboard:view", \context_module::instance($cm->id))) {
+    if ($cm && has_capability("mod/projectboard:view", context_module::instance($cm->id))) {
         $rows[] = [
             "name" => format_string($module->name),
             "url" => (new moodle_url("/mod/projectboard/view.php", ["id" => $cm->id]))->out(false),

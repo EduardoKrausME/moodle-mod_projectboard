@@ -24,8 +24,7 @@
 
 namespace mod_projectboard;
 
-// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
-defined("MOODLE_INTERNAL") || die();
+use stdClass;
 
 /**
  * Provides report service functionality.
@@ -34,7 +33,7 @@ final class report_service {
     /**
      * Handles rows for Project Board.
      */
-    public static function rows(\stdClass $activity, \stdClass $cm): array {
+    public static function rows(stdClass $activity, stdClass $cm): array {
         global $DB;
         access_manager::require_action("viewreports", $cm);
         $rows = [];

@@ -24,8 +24,10 @@
 
 namespace mod_projectboard;
 
-// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
-defined("MOODLE_INTERNAL") || die();
+use context_module;
+use moodle_exception;
+use required_capability_exception;
+use stdClass;
 
 /**
  * Provides access manager functionality.
@@ -34,14 +36,14 @@ final class access_manager {
     /**
      * Handles context operations for Project Board.
      */
-    public static function context(\stdClass $cm): \context_module {
-        return \context_module::instance($cm->id);
+    public static function context(stdClass $cm): context_module {
+        return context_module::instance($cm->id);
     }
 
     /**
      * Handles require view operations for Project Board.
      */
-    public static function require_view(\stdClass $cm): void {
+    public static function require_view(stdClass $cm): void {
         require_login($cm->course, false, $cm);
         require_capability("mod/projectboard:view", self::context($cm));
     }
@@ -49,14 +51,14 @@ final class access_manager {
     /**
      * Handles can manage operations for Project Board.
      */
-    public static function can_manage(\stdClass $cm): bool {
+    public static function can_manage(stdClass $cm): bool {
         return has_capability("mod/projectboard:manage", self::context($cm));
     }
 
     /**
      * Handles can access board operations for Project Board.
      */
-    public static function can_access_board(\stdClass $board, \stdClass $activity, \stdClass $cm, bool $write = false): bool {
+    public static function can_access_board(stdClass $board, stdClass $activity, stdClass $cm, bool $write = false): bool {
         global $USER;
         $context = self::context($cm);
         if ((int)$board->projectboardid !== (int)$activity->id || !has_capability("mod/projectboard:view", $context)) {
@@ -88,7 +90,7 @@ final class access_manager {
     /**
      * Handles may view user operations for Project Board.
      */
-    private static function may_view_user(int $userid, \stdClass $cm): bool {
+    private static function may_view_user(int $userid, stdClass $cm): bool {
         global $USER;
         $context = self::context($cm);
         if (has_capability("moodle/site:accessallgroups", $context) ||
@@ -103,11 +105,11 @@ final class access_manager {
     /**
      * Handles require board operations for Project Board.
      */
-    public static function require_board(int $boardid, \stdClass $activity, \stdClass $cm, bool $write = false): \stdClass {
+    public static function require_board(int $boardid, stdClass $activity, stdClass $cm, bool $write = false): stdClass {
         global $DB;
         $board = $DB->get_record("projectboard_board", ["id" => $boardid], "*", MUST_EXIST);
         if (!self::can_access_board($board, $activity, $cm, $write)) {
-            throw new \required_capability_exception(self::context($cm), "mod/projectboard:view", CAP_ALLOW, "nopermissions");
+            throw new required_capability_exception(self::context($cm), "mod/projectboard:view", CAP_ALLOW, "nopermissions");
         }
         return $board;
     }
@@ -115,14 +117,14 @@ final class access_manager {
     /**
      * Handles require action operations for Project Board.
      */
-    public static function require_action(string $capability, \stdClass $cm): void {
+    public static function require_action(string $capability, stdClass $cm): void {
         require_capability("mod/projectboard:" . $capability, self::context($cm));
     }
 
     /**
      * Handles may edit operations for Project Board.
      */
-    public static function may_edit(\stdClass $task, \stdClass $cm): bool {
+    public static function may_edit(stdClass $task, stdClass $cm): bool {
         global $USER;
         $context = self::context($cm);
         return has_capability("mod/projectboard:editall", $context) ||
@@ -132,21 +134,21 @@ final class access_manager {
     /**
      * Handles require edit operations for Project Board.
      */
-    public static function require_edit(\stdClass $task, \stdClass $cm): void {
+    public static function require_edit(stdClass $task, stdClass $cm): void {
         if (!self::may_edit($task, $cm)) {
-            throw new \required_capability_exception(self::context($cm), "mod/projectboard:editown", CAP_ALLOW, "nopermissions");
+            throw new required_capability_exception(self::context($cm), "mod/projectboard:editown", CAP_ALLOW, "nopermissions");
         }
     }
 
     /**
      * Handles require task operations for Project Board.
      */
-    public static function require_task(int $taskid, \stdClass $activity, \stdClass $cm, bool $write = false): \stdClass {
+    public static function require_task(int $taskid, stdClass $activity, stdClass $cm, bool $write = false): stdClass {
         global $DB;
         $task = $DB->get_record("projectboard_task", ["id" => $taskid], "*", MUST_EXIST);
         self::require_board((int)$task->boardid, $activity, $cm, $write);
         if ($task->archived && $write && !self::can_manage($cm)) {
-            throw new \moodle_exception("invalidaccess", "projectboard");
+            throw new moodle_exception("invalidaccess", "projectboard");
         }
         return $task;
     }
@@ -154,17 +156,17 @@ final class access_manager {
     /**
      * Handles require assignee operations for Project Board.
      */
-    public static function require_assignee(int $userid, \stdClass $board, \stdClass $activity, \stdClass $cm): void {
+    public static function require_assignee(int $userid, stdClass $board, stdClass $activity, stdClass $cm): void {
         global $DB;
         $context = self::context($cm);
         if (!is_enrolled($context, $userid, "mod/projectboard:view", true)) {
-            throw new \moodle_exception("invalidaccess", "projectboard");
+            throw new moodle_exception("invalidaccess", "projectboard");
         }
         if ($activity->workmode === "individual" && (int)$board->owneruserid !== $userid) {
-            throw new \moodle_exception("invalidaccess", "projectboard");
+            throw new moodle_exception("invalidaccess", "projectboard");
         }
         if ($activity->workmode === "groups" && !groups_is_member((int)$board->groupid, $userid)) {
-            throw new \moodle_exception("invalidaccess", "projectboard");
+            throw new moodle_exception("invalidaccess", "projectboard");
         }
     }
 }

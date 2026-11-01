@@ -22,6 +22,11 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_projectboard\access_manager;
+use mod_projectboard\completion_service;
+use mod_projectboard\form\evidence_form;
+use mod_projectboard\history_service;
+
 require_once("../../config.php");
 require_once($CFG->libdir . "/filelib.php");
 require_once($CFG->libdir . "/formslib.php");
@@ -31,23 +36,23 @@ $taskid = required_param("taskid", PARAM_INT);
 $cm = get_coursemodule_from_id("projectboard", $cmid, 0, false, MUST_EXIST);
 $activity = $DB->get_record("projectboard", ["id" => $cm->instance], "*", MUST_EXIST);
 require_login($cm->course, false, $cm);
-\mod_projectboard\access_manager::require_view($cm);
-\mod_projectboard\access_manager::require_action("addevidence", $cm);
-$task = \mod_projectboard\access_manager::require_task($taskid, $activity, $cm, true);
-$context = \context_module::instance($cm->id);
+access_manager::require_view($cm);
+access_manager::require_action("addevidence", $cm);
+$task = access_manager::require_task($taskid, $activity, $cm, true);
+$context = context_module::instance($cm->id);
 $url = new moodle_url("/mod/projectboard/evidence.php", ["id" => $cmid, "taskid" => $taskid]);
 $PAGE->set_url($url);
 $PAGE->set_cm($cm);
 $PAGE->set_context($context);
 $PAGE->set_title(get_string("addevidence", "projectboard"));
 $PAGE->set_heading($activity->name);
-$form = new \mod_projectboard\form\evidence_form($url, ["cmid" => $cmid, "taskid" => $taskid]);
+$form = new evidence_form($url, ["cmid" => $cmid, "taskid" => $taskid]);
 if ($form->is_cancelled()) {
     redirect(new moodle_url("/mod/projectboard/view.php", ["id" => $cmid]));
 }
 if ($data = $form->get_data()) {
     $draftid = (int)$data->files;
-    $draftcontext = \context_user::instance($USER->id);
+    $draftcontext = context_user::instance($USER->id);
     $files = get_file_storage()->get_area_files($draftcontext->id,
         "user", "draft", $draftid, "id", false);
     if (!$files) {
@@ -60,9 +65,9 @@ if ($data = $form->get_data()) {
     ]);
     file_save_draft_area_files($draftid, $context->id, "mod_projectboard",
         "evidence", $evidenceid, ["subdirs" => 0, "maxfiles" => 10]);
-    \mod_projectboard\history_service::record($taskid, "evidence_added", null, $evidenceid);
+    history_service::record($taskid, "evidence_added", null, $evidenceid);
     $transaction->allow_commit();
-    \mod_projectboard\completion_service::refresh($activity, $cm, (int)$USER->id);
+    completion_service::refresh($activity, $cm, (int)$USER->id);
     redirect(new moodle_url("/mod/projectboard/view.php", ["id" => $cmid, "boardid" => $task->boardid]));
 }
 echo $OUTPUT->header();

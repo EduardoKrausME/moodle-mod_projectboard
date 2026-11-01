@@ -22,6 +22,9 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_projectboard\access_manager;
+use mod_projectboard\report_service;
+
 require_once("../../config.php");
 
 $id = required_param("id", PARAM_INT);
@@ -32,14 +35,14 @@ $search = optional_param("search", "", PARAM_TEXT);
 $cm = get_coursemodule_from_id("projectboard", $id, 0, false, MUST_EXIST);
 $activity = $DB->get_record("projectboard", ["id" => $cm->instance], "*", MUST_EXIST);
 require_login($cm->course, false, $cm);
-\mod_projectboard\access_manager::require_view($cm);
-\mod_projectboard\access_manager::require_action("viewreports", $cm);
+access_manager::require_view($cm);
+access_manager::require_action("viewreports", $cm);
 $PAGE->set_url(new moodle_url("/mod/projectboard/report.php", ["id" => $id]));
 $PAGE->set_cm($cm);
-$PAGE->set_context(\context_module::instance($cm->id));
+$PAGE->set_context(context_module::instance($cm->id));
 $PAGE->set_title(get_string("report", "projectboard"));
 $PAGE->set_heading($activity->name);
-$rows = \mod_projectboard\report_service::rows($activity, $cm);
+$rows = report_service::rows($activity, $cm);
 $rows = array_values(array_filter($rows, static function($row) use ($priority, $status, $search) {
     return (!$priority || $row["priority"] === $priority) &&
         (!$status || $row["status"] === $status) &&
@@ -47,7 +50,7 @@ $rows = array_values(array_filter($rows, static function($row) use ($priority, $
 }));
 if ($export) {
     require_once($CFG->libdir . "/csvlib.class.php");
-    $writer = new \csv_export_writer("comma");
+    $writer = new csv_export_writer("comma");
     $writer->set_filename("projectboard-" . $activity->id);
     $writer->add_data(["Board", "Task ID", "Task", "Status", "Priority", "Due", "Assignees", "Overdue"]);
     foreach ($rows as $row) {

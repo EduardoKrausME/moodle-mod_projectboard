@@ -24,8 +24,11 @@
 
 namespace mod_projectboard;
 
-// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
-defined("MOODLE_INTERNAL") || die();
+use core\lock\lock;
+use core\lock\lock_config;
+use invalid_parameter_exception;
+use moodle_exception;
+use stdClass;
 
 /**
  * Provides task service functionality.
@@ -34,11 +37,11 @@ final class task_service {
     /**
      * Handles activity lock for Project Board.
      */
-    public static function activity_lock(int $activityid): \core\lock\lock {
-        $factory = \core\lock\lock_config::get_lock_factory("mod_projectboard");
+    public static function activity_lock(int $activityid): lock {
+        $factory = lock_config::get_lock_factory("mod_projectboard");
         $lock = $factory->get_lock("activity_" . $activityid, 15);
         if (!$lock) {
-            throw new \moodle_exception("conflict", "projectboard");
+            throw new moodle_exception("conflict", "projectboard");
         }
         return $lock;
     }
@@ -46,7 +49,7 @@ final class task_service {
     /**
      * Handles lock for Project Board.
      */
-    private static function lock(int $boardid): \core\lock\lock {
+    private static function lock(int $boardid): lock {
         global $DB;
         $activityid = (int)$DB->get_field("projectboard_board", "projectboardid",
             ["id" => $boardid], MUST_EXIST);
@@ -56,7 +59,7 @@ final class task_service {
     /**
      * Handles column for Project Board.
      */
-    private static function column(\stdClass $activity, int $columnid): \stdClass {
+    private static function column(stdClass $activity, int $columnid): stdClass {
         global $DB;
         $column = $DB->get_record("projectboard_column", [
             "id" => $columnid, "projectboardid" => $activity->id, "archived" => 0,
@@ -67,16 +70,16 @@ final class task_service {
     /**
      * Handles require version for Project Board.
      */
-    private static function require_version(\stdClass $task, array $data): void {
+    private static function require_version(stdClass $task, array $data): void {
         if (!array_key_exists("version", $data) || (int)$data["version"] !== (int)$task->version) {
-            throw new \moodle_exception("conflict", "projectboard");
+            throw new moodle_exception("conflict", "projectboard");
         }
     }
 
     /**
      * Handles assert capacity for Project Board.
      */
-    private static function assert_capacity(\stdClass $activity, \stdClass $column, int $boardid, int $excludedid = 0): void {
+    private static function assert_capacity(stdClass $activity, stdClass $column, int $boardid, int $excludedid = 0): void {
         global $DB;
         $limit = (int)$column->wiplimit ?: (int)$activity->maxwip;
         if ($limit <= 0 || $column->isdone) {
@@ -88,29 +91,29 @@ final class task_service {
             "boardid" => $boardid, "columnid" => $column->id, "excludedid" => $excludedid,
         ]);
         if ($count >= $limit) {
-            throw new \moodle_exception("tasklimit", "projectboard");
+            throw new moodle_exception("tasklimit", "projectboard");
         }
     }
 
     /**
      * Handles assert done for Project Board.
      */
-    private static function assert_done(\stdClass $activity, \stdClass $task): void {
+    private static function assert_done(stdClass $activity, stdClass $task): void {
         global $DB;
         if (dependency_service::blockers((int)$task->id)) {
-            throw new \moodle_exception("blocked", "projectboard");
+            throw new moodle_exception("blocked", "projectboard");
         }
         if ($activity->requireevidence && !$DB->record_exists("projectboard_evidence", ["taskid" => $task->id])) {
-            throw new \moodle_exception("requiresfiles", "projectboard");
+            throw new moodle_exception("requiresfiles", "projectboard");
         }
         if ($DB->record_exists_select("projectboard_check", "taskid = ? AND required = 1 AND done = 0", [$task->id])) {
-            throw new \moodle_exception("blocked", "projectboard");
+            throw new moodle_exception("blocked", "projectboard");
         }
         $sql = "SELECT COUNT(1) FROM {projectboard_task} t
                   JOIN {projectboard_column} c ON c.id = t.columnid
                  WHERE t.parentid = ? AND t.archived = 0 AND c.isdone = 0";
         if ($DB->count_records_sql($sql, [$task->id])) {
-            throw new \moodle_exception("blocked", "projectboard");
+            throw new moodle_exception("blocked", "projectboard");
         }
     }
 
@@ -134,23 +137,23 @@ final class task_service {
     /**
      * Handles create for Project Board.
      */
-    public static function create(\stdClass $activity, \stdClass $cm, array $data): int {
+    public static function create(stdClass $activity, stdClass $cm, array $data): int {
         global $DB, $USER;
         $board = access_manager::require_board((int)($data["boardid"] ?? 0), $activity, $cm, true);
         access_manager::require_action("addtask", $cm);
         if (!$activity->allowcreate && !access_manager::can_manage($cm)) {
-            throw new \moodle_exception("invalidaccess", "projectboard");
+            throw new moodle_exception("invalidaccess", "projectboard");
         }
         $title = trim(clean_param($data["title"] ?? "", PARAM_TEXT));
         if (!$title) {
-            throw new \invalid_parameter_exception("A task title is required");
+            throw new invalid_parameter_exception("A task title is required");
         }
         $column = self::column($activity, (int)($data["columnid"] ?? 0));
         $parentid = (int)($data["parentid"] ?? 0);
         if ($parentid) {
             $parent = access_manager::require_task($parentid, $activity, $cm, true);
             if ((int)$parent->boardid !== (int)$board->id) {
-                throw new \moodle_exception("invalidaccess", "projectboard");
+                throw new moodle_exception("invalidaccess", "projectboard");
             }
         }
         $lock = self::lock((int)$board->id);
@@ -181,7 +184,7 @@ final class task_service {
     /**
      * Handles update for Project Board.
      */
-    public static function update(\stdClass $activity, \stdClass $cm, array $data): void {
+    public static function update(stdClass $activity, stdClass $cm, array $data): void {
         global $DB;
         $task = access_manager::require_task((int)($data["taskid"] ?? 0), $activity, $cm, true);
         access_manager::require_edit($task, $cm);
@@ -214,10 +217,10 @@ final class task_service {
                 }
             }
             if (!trim($task->title)) {
-                throw new \invalid_parameter_exception("A title is required");
+                throw new invalid_parameter_exception("A title is required");
             }
             if ($task->duedate && $task->startdate && $task->startdate > $task->duedate) {
-                throw new \moodle_exception("dateinvalid", "projectboard");
+                throw new moodle_exception("dateinvalid", "projectboard");
             }
             $task->version++;
             $task->timemodified = time();
@@ -236,12 +239,12 @@ final class task_service {
     /**
      * Handles assign for Project Board.
      */
-    public static function assign(\stdClass $activity, \stdClass $cm, array $data): void {
+    public static function assign(stdClass $activity, stdClass $cm, array $data): void {
         global $DB, $USER;
         $task = access_manager::require_task((int)($data["taskid"] ?? 0), $activity, $cm, true);
         access_manager::require_action("assign", $cm);
         if (!$activity->allowassign && !access_manager::can_manage($cm)) {
-            throw new \moodle_exception("invalidaccess", "projectboard");
+            throw new moodle_exception("invalidaccess", "projectboard");
         }
         $board = access_manager::require_board((int)$task->boardid, $activity, $cm, true);
         $raw = $data["userids"] ?? [];
@@ -273,12 +276,12 @@ final class task_service {
     /**
      * Handles move for Project Board.
      */
-    public static function move(\stdClass $activity, \stdClass $cm, array $data): void {
+    public static function move(stdClass $activity, stdClass $cm, array $data): void {
         global $DB;
         $task = access_manager::require_task((int)($data["taskid"] ?? 0), $activity, $cm, true);
         access_manager::require_action("movetask", $cm);
         if (!$activity->allowmove && !access_manager::can_manage($cm)) {
-            throw new \moodle_exception("invalidaccess", "projectboard");
+            throw new moodle_exception("invalidaccess", "projectboard");
         }
         $target = self::column($activity, (int)($data["columnid"] ?? 0));
         $lock = self::lock((int)$task->boardid);
@@ -291,7 +294,7 @@ final class task_service {
                 $rule = $DB->get_record("projectboard_transition",
                     ["fromcolumnid" => $from, "tocolumnid" => $target->id]);
                 if ($rule && !$rule->allowed) {
-                    throw new \moodle_exception("invalidtransition", "projectboard");
+                    throw new moodle_exception("invalidtransition", "projectboard");
                 }
                 self::assert_capacity($activity, $target, (int)$task->boardid);
             }
@@ -336,7 +339,7 @@ final class task_service {
     /**
      * Handles archive for Project Board.
      */
-    public static function archive(\stdClass $activity, \stdClass $cm, array $data): void {
+    public static function archive(stdClass $activity, stdClass $cm, array $data): void {
         global $DB;
         $task = access_manager::require_task((int)($data["taskid"] ?? 0), $activity, $cm, true);
         access_manager::require_edit($task, $cm);
@@ -346,7 +349,7 @@ final class task_service {
             $task = access_manager::require_task((int)$task->id, $activity, $cm, true);
             self::require_version($task, $data);
             if ($DB->record_exists("projectboard_task", ["parentid" => $task->id, "archived" => 0])) {
-                throw new \moodle_exception("invalidaccess", "projectboard");
+                throw new moodle_exception("invalidaccess", "projectboard");
             }
             $task->archived = 1;
             $task->version++;
@@ -363,7 +366,7 @@ final class task_service {
     /**
      * Handles duplicate for Project Board.
      */
-    public static function duplicate(\stdClass $activity, \stdClass $cm, array $data): int {
+    public static function duplicate(stdClass $activity, stdClass $cm, array $data): int {
         $original = access_manager::require_task((int)($data["taskid"] ?? 0), $activity, $cm);
         access_manager::require_action("addtask", $cm);
         return self::create($activity, $cm, [

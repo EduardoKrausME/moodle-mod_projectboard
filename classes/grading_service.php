@@ -24,8 +24,9 @@
 
 namespace mod_projectboard;
 
-// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
-defined("MOODLE_INTERNAL") || die();
+use invalid_parameter_exception;
+use moodle_exception;
+use stdClass;
 
 /**
  * Provides grading service functionality.
@@ -34,7 +35,7 @@ final class grading_service {
     /**
      * Handles update item for Project Board.
      */
-    public static function update_item(\stdClass $activity, $grades = null): void {
+    public static function update_item(stdClass $activity, $grades = null): void {
         global $CFG;
         require_once($CFG->libdir . "/gradelib.php");
         if ($activity->grademode === "none") {
@@ -50,16 +51,16 @@ final class grading_service {
     /**
      * Handles save for Project Board.
      */
-    public static function save(\stdClass $activity, \stdClass $cm, array $data): void {
+    public static function save(stdClass $activity, stdClass $cm, array $data): void {
         global $DB, $USER;
         access_manager::require_action("grade", $cm);
         if ($activity->grademode === "none") {
-            throw new \moodle_exception("invalidaccess", "projectboard");
+            throw new moodle_exception("invalidaccess", "projectboard");
         }
         $board = access_manager::require_board((int)($data["boardid"] ?? 0), $activity, $cm, true);
         $score = (float)($data["grade"] ?? -1);
         if ($score < 0 || $score > $activity->grade) {
-            throw new \invalid_parameter_exception("Grade is outside the configured range");
+            throw new invalid_parameter_exception("Grade is outside the configured range");
         }
         $users = [];
         if ($activity->workmode === "individual") {
@@ -109,7 +110,7 @@ final class grading_service {
     /**
      * Handles sync for Project Board.
      */
-    public static function sync(\stdClass $activity, int $userid = 0): void {
+    public static function sync(stdClass $activity, int $userid = 0): void {
         global $DB;
         $params = ["projectboardid" => $activity->id];
         if ($userid) {

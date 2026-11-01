@@ -24,13 +24,13 @@
 
 namespace mod_projectboard\completion;
 
-// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
-defined("MOODLE_INTERNAL") || die();
+use core_completion\activity_custom_completion;
+use mod_projectboard\completion_service;
 
 /**
  * Provides custom completion functionality.
  */
-final class custom_completion extends \core_completion\activity_custom_completion {
+final class custom_completion extends activity_custom_completion {
     /**
      * Handles get defined custom rules operations for Project Board.
      */
@@ -58,7 +58,7 @@ final class custom_completion extends \core_completion\activity_custom_completio
                 $isolated->$key = 0;
             }
         }
-        $met = \mod_projectboard\completion_service::completed($isolated, $this->cm, $this->userid);
+        $met = completion_service::completed($isolated, $this->cm, $this->userid);
         return $met ? COMPLETION_COMPLETE : COMPLETION_INCOMPLETE;
     }
 

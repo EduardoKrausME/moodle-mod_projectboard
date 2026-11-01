@@ -24,13 +24,25 @@
 
 namespace mod_projectboard\external;
 
-// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
-defined("MOODLE_INTERNAL") || die();
-
+use context_module;
 use core_external\external_api;
 use core_external\external_function_parameters;
 use core_external\external_single_structure;
 use core_external\external_value;
+use invalid_parameter_exception;
+use mod_projectboard\access_manager;
+use mod_projectboard\board_service;
+use mod_projectboard\checklist_service;
+use mod_projectboard\column_service;
+use mod_projectboard\comment_service;
+use mod_projectboard\completion_service;
+use mod_projectboard\criterion_service;
+use mod_projectboard\dependency_service;
+use mod_projectboard\grading_service;
+use mod_projectboard\presentation\board_data;
+use mod_projectboard\review_service;
+use mod_projectboard\task_service;
+use stdClass;
 
 /**
  * Provides operation functionality.
@@ -56,13 +68,13 @@ final class operation extends external_api {
             ["cmid" => $cmid, "action" => $action, "payload" => $payload]);
         $cm = get_coursemodule_from_id("projectboard", $params["cmid"], 0, false, MUST_EXIST);
         $activity = $DB->get_record("projectboard", ["id" => $cm->instance], "*", MUST_EXIST);
-        \mod_projectboard\access_manager::require_view($cm);
-        $context = \context_module::instance($cm->id);
+        access_manager::require_view($cm);
+        $context = context_module::instance($cm->id);
         self::validate_context($context);
         $PAGE->set_context($context);
         $data = json_decode($params["payload"], true);
         if (!is_array($data) || json_last_error() !== JSON_ERROR_NONE) {
-            throw new \invalid_parameter_exception("Expected a JSON object");
+            throw new invalid_parameter_exception("Expected a JSON object");
         }
         $boardid = (int)($data["boardid"] ?? 0);
         $taskid = (int)($data["taskid"] ?? 0);
@@ -71,64 +83,64 @@ final class operation extends external_api {
             case "refresh":
                 break;
             case "task_details":
-                $task = \mod_projectboard\access_manager::require_task($taskid, $activity, $cm);
-                $taskdata = \mod_projectboard\presentation\board_data::task($activity, $cm, $task);
+                $task = access_manager::require_task($taskid, $activity, $cm);
+                $taskdata = board_data::task($activity, $cm, $task);
                 return ["html" => "", "dialog" => $OUTPUT->render_from_template("mod_projectboard/task", $taskdata),
                     "taskid" => $taskid];
             case "task_create":
-                $taskid = \mod_projectboard\task_service::create($activity, $cm, $data);
+                $taskid = task_service::create($activity, $cm, $data);
                 $changed = true;
                 break;
             case "task_update":
-                \mod_projectboard\task_service::update($activity, $cm, $data);
+                task_service::update($activity, $cm, $data);
                 $changed = true;
                 break;
             case "task_move":
-                \mod_projectboard\task_service::move($activity, $cm, $data);
+                task_service::move($activity, $cm, $data);
                 $changed = true;
                 break;
             case "task_assign":
-                \mod_projectboard\task_service::assign($activity, $cm, $data);
+                task_service::assign($activity, $cm, $data);
                 $changed = true;
                 break;
             case "review_submit":
-                \mod_projectboard\review_service::submit($activity, $cm, $data);
+                review_service::submit($activity, $cm, $data);
                 $changed = true;
                 break;
             case "review_approve":
             case "review_return":
-                \mod_projectboard\review_service::evaluate($activity, $cm, $data,
+                review_service::evaluate($activity, $cm, $data,
                     $action === "review_approve");
                 $changed = true;
                 break;
             case "task_archive":
-                \mod_projectboard\task_service::archive($activity, $cm, $data);
+                task_service::archive($activity, $cm, $data);
                 $changed = true;
                 $taskid = 0;
                 break;
             case "task_duplicate":
-                $taskid = \mod_projectboard\task_service::duplicate($activity, $cm, $data);
+                $taskid = task_service::duplicate($activity, $cm, $data);
                 $changed = true;
                 break;
             case "check_add":
             case "check_toggle":
             case "check_delete":
             case "check_order":
-                \mod_projectboard\checklist_service::execute($activity, $cm, $action, $data);
+                checklist_service::execute($activity, $cm, $action, $data);
                 $changed = true;
                 break;
             case "dep_add":
-                \mod_projectboard\dependency_service::add($activity, $cm,
+                dependency_service::add($activity, $cm,
                     $taskid, (int)($data["dependsid"] ?? 0));
                 $changed = true;
                 break;
             case "dep_delete":
-                \mod_projectboard\dependency_service::remove($activity, $cm,
+                dependency_service::remove($activity, $cm,
                     $taskid, (int)($data["dependsid"] ?? 0));
                 $changed = true;
                 break;
             case "comment_add":
-                \mod_projectboard\comment_service::add($activity, $cm, $data);
+                comment_service::add($activity, $cm, $data);
                 $changed = true;
                 break;
             case "column_create":
@@ -136,48 +148,48 @@ final class operation extends external_api {
             case "column_archive":
             case "column_order":
             case "column_transition":
-                \mod_projectboard\column_service::execute($activity, $cm, $action, $data);
+                column_service::execute($activity, $cm, $action, $data);
                 $changed = true;
                 $taskid = 0;
                 break;
             case "criterion_create":
-                \mod_projectboard\criterion_service::create($activity, $cm, $data);
+                criterion_service::create($activity, $cm, $data);
                 $changed = true;
                 break;
             case "criterion_score":
-                \mod_projectboard\criterion_service::score($activity, $cm, $data);
+                criterion_service::score($activity, $cm, $data);
                 $changed = true;
                 break;
             case "grade_save":
-                \mod_projectboard\grading_service::save($activity, $cm, $data);
+                grading_service::save($activity, $cm, $data);
                 $changed = true;
                 break;
             default:
-                throw new \invalid_parameter_exception("Unknown Project Board action");
+                throw new invalid_parameter_exception("Unknown Project Board action");
         }
         if ($taskid) {
-            $task = \mod_projectboard\access_manager::require_task($taskid, $activity, $cm);
+            $task = access_manager::require_task($taskid, $activity, $cm);
             $boardid = (int)$task->boardid;
         }
         if (!$boardid) {
-            $boards = \mod_projectboard\board_service::available($activity, $cm);
+            $boards = board_service::available($activity, $cm);
             $board = reset($boards);
             $boardid = $board ? (int)$board->id : 0;
         }
         $board = null;
         if ($boardid) {
-            $board = \mod_projectboard\access_manager::require_board($boardid, $activity, $cm);
+            $board = access_manager::require_board($boardid, $activity, $cm);
         }
         if ($changed && $board) {
             self::refresh_completion($activity, $cm, $board);
         }
         $html = $board ? $OUTPUT->render_from_template("mod_projectboard/board",
-            \mod_projectboard\presentation\board_data::board($activity, $cm, $board)) : "";
+            board_data::board($activity, $cm, $board)) : "";
         $dialog = "";
         if ($taskid && $DB->record_exists("projectboard_task", ["id" => $taskid, "archived" => 0])) {
-            $task = \mod_projectboard\access_manager::require_task($taskid, $activity, $cm);
+            $task = access_manager::require_task($taskid, $activity, $cm);
             $dialog = $OUTPUT->render_from_template("mod_projectboard/task",
-                \mod_projectboard\presentation\board_data::task($activity, $cm, $task));
+                board_data::task($activity, $cm, $task));
         }
         return ["html" => $html, "dialog" => $dialog, "taskid" => $taskid];
     }
@@ -185,19 +197,19 @@ final class operation extends external_api {
     /**
      * Handles refresh completion operations for Project Board.
      */
-    private static function refresh_completion(\stdClass $activity, \stdClass $cm, \stdClass $board): void {
+    private static function refresh_completion(stdClass $activity, stdClass $cm, stdClass $board): void {
         global $USER;
         if ($activity->workmode === "individual") {
             $users = [(int)$board->owneruserid];
         } else if ($activity->workmode === "groups") {
             $users = array_keys(groups_get_members((int)$board->groupid));
         } else {
-            $users = array_keys(get_enrolled_users(\context_module::instance($cm->id),
+            $users = array_keys(get_enrolled_users(context_module::instance($cm->id),
                 "mod/projectboard:view"));
         }
         foreach ($users as $userid) {
             if ($userid) {
-                \mod_projectboard\completion_service::refresh($activity, $cm, (int)$userid);
+                completion_service::refresh($activity, $cm, (int)$userid);
             }
         }
     }

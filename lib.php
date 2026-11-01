@@ -22,8 +22,11 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this entry point.
-defined("MOODLE_INTERNAL") || die();
+use mod_projectboard\access_manager;
+use mod_projectboard\board_service;
+use mod_projectboard\completion\custom_completion;
+use mod_projectboard\completion_service;
+use mod_projectboard\grading_service;
 
 /**
  * Projectboard supports for the Project Board activity.
@@ -52,9 +55,9 @@ function projectboard_add_instance($data, $mform = null) {
     $data->timecreated = time();
     $data->timemodified = time();
     $id = $DB->insert_record("projectboard", $data);
-    \mod_projectboard\board_service::default_columns((int)$id);
+    board_service::default_columns((int)$id);
     $data->id = $id;
-    \mod_projectboard\grading_service::update_item($data);
+    grading_service::update_item($data);
     return $id;
 }
 
@@ -66,7 +69,7 @@ function projectboard_update_instance($data, $mform = null) {
     $data->id = $data->instance;
     $data->timemodified = time();
     $DB->update_record("projectboard", $data);
-    \mod_projectboard\grading_service::sync($data);
+    grading_service::sync($data);
     return true;
 }
 
@@ -86,7 +89,7 @@ function projectboard_delete_instance($id) {
             $evidences = $DB->get_fieldset_select("projectboard_evidence", "id", "taskid = ?", [$taskid]);
             $cm = get_coursemodule_from_instance("projectboard", $id, $activity->course);
             if ($cm) {
-                $context = \context_module::instance($cm->id);
+                $context = context_module::instance($cm->id);
                 foreach ($evidences as $evidenceid) {
                     get_file_storage()->delete_area_files($context->id, "mod_projectboard", "evidence", $evidenceid);
                 }
@@ -116,7 +119,7 @@ function projectboard_delete_instance($id) {
     $DB->delete_records("projectboard", ["id" => $id]);
     $transaction->allow_commit();
     $activity->grademode = "none";
-    \mod_projectboard\grading_service::update_item($activity);
+    grading_service::update_item($activity);
     return true;
 }
 
@@ -124,14 +127,14 @@ function projectboard_delete_instance($id) {
  * Projectboard grade item update for the Project Board activity.
  */
 function projectboard_grade_item_update($activity, $grades = null) {
-    \mod_projectboard\grading_service::update_item($activity, $grades);
+    grading_service::update_item($activity, $grades);
 }
 
 /**
  * Projectboard update grades for the Project Board activity.
  */
 function projectboard_update_grades($activity, $userid = 0, $nullifnone = true) {
-    \mod_projectboard\grading_service::sync($activity, (int)$userid);
+    grading_service::sync($activity, (int)$userid);
 }
 
 /**
@@ -140,7 +143,7 @@ function projectboard_update_grades($activity, $userid = 0, $nullifnone = true) 
 function projectboard_get_completion_state($course, $cm, $userid, $type) {
     global $DB;
     $activity = $DB->get_record("projectboard", ["id" => $cm->instance], "*", MUST_EXIST);
-    $custom = \mod_projectboard\completion_service::completed($activity, $cm, (int)$userid);
+    $custom = completion_service::completed($activity, $cm, (int)$userid);
     $hascustom = (bool)($activity->completioncreated || $activity->completiondone ||
         $activity->completionproject || $activity->completionchecklist ||
         $activity->completiongraded || $activity->completionminscore);
@@ -156,14 +159,14 @@ function projectboard_get_coursemodule_info($cm) {
     if (!$activity) {
         return false;
     }
-    $info = new \cached_cm_info();
+    $info = new cached_cm_info();
     $info->name = $activity->name;
     if ($cm->showdescription) {
         $info->content = format_module_intro("projectboard", $activity, $cm->id, false);
     }
     if ($cm->completion == COMPLETION_TRACKING_AUTOMATIC) {
         $full = $DB->get_record("projectboard", ["id" => $cm->instance], "*", MUST_EXIST);
-        foreach (\mod_projectboard\completion\custom_completion::get_defined_custom_rules() as $rule) {
+        foreach (custom_completion::get_defined_custom_rules() as $rule) {
             $info->customdata["customcompletionrules"][$rule] = $full->$rule;
         }
     }
@@ -180,7 +183,7 @@ function projectboard_pluginfile($course, $cm, $context, $filearea, $args,
             !in_array($filearea, ["evidence", "commentattachment"], true)) {
         return false;
     }
-    \mod_projectboard\access_manager::require_view($cm);
+    access_manager::require_view($cm);
     $itemid = (int)array_shift($args);
     if ($filearea === "evidence") {
         $item = $DB->get_record("projectboard_evidence", ["id" => $itemid]);
@@ -191,7 +194,7 @@ function projectboard_pluginfile($course, $cm, $context, $filearea, $args,
         return false;
     }
     $activity = $DB->get_record("projectboard", ["id" => $cm->instance], "*", MUST_EXIST);
-    \mod_projectboard\access_manager::require_task((int)$item->taskid, $activity, $cm);
+    access_manager::require_task((int)$item->taskid, $activity, $cm);
     $filename = array_pop($args);
     $filepath = "/" . implode("/", $args) . "/";
     $file = get_file_storage()->get_file($context->id, "mod_projectboard",

@@ -24,8 +24,9 @@
 
 namespace mod_projectboard;
 
-// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
-defined("MOODLE_INTERNAL") || die();
+use invalid_parameter_exception;
+use moodle_exception;
+use stdClass;
 
 /**
  * Provides criterion service functionality.
@@ -34,7 +35,7 @@ final class criterion_service {
     /**
      * Handles all operations for Project Board.
      */
-    public static function all(\stdClass $activity): array {
+    public static function all(stdClass $activity): array {
         global $DB;
         return array_values($DB->get_records("projectboard_criterion",
             ["projectboardid" => $activity->id], "sortorder ASC, id ASC"));
@@ -43,16 +44,16 @@ final class criterion_service {
     /**
      * Handles create operations for Project Board.
      */
-    public static function create(\stdClass $activity, \stdClass $cm, array $data): void {
+    public static function create(stdClass $activity, stdClass $cm, array $data): void {
         global $DB;
         access_manager::require_action("grade", $cm);
         if ($activity->grademode !== "criteria") {
-            throw new \moodle_exception("invalidaccess", "projectboard");
+            throw new moodle_exception("invalidaccess", "projectboard");
         }
         $name = trim(clean_param($data["name"] ?? "", PARAM_TEXT));
         $max = (float)($data["maxscore"] ?? 0);
         if (!$name || $max <= 0 || $max > 100000) {
-            throw new \invalid_parameter_exception("Invalid grading criterion");
+            throw new invalid_parameter_exception("Invalid grading criterion");
         }
         $lock = task_service::activity_lock((int)$activity->id);
         try {
@@ -71,11 +72,11 @@ final class criterion_service {
     /**
      * Handles score operations for Project Board.
      */
-    public static function score(\stdClass $activity, \stdClass $cm, array $data): void {
+    public static function score(stdClass $activity, stdClass $cm, array $data): void {
         global $DB, $USER;
         access_manager::require_action("grade", $cm);
         if ($activity->grademode !== "criteria") {
-            throw new \moodle_exception("invalidaccess", "projectboard");
+            throw new moodle_exception("invalidaccess", "projectboard");
         }
         $criterion = $DB->get_record("projectboard_criterion", [
             "id" => (int)($data["criterionid"] ?? 0), "projectboardid" => $activity->id,
@@ -85,7 +86,7 @@ final class criterion_service {
         access_manager::require_assignee($userid, $board, $activity, $cm);
         $score = (float)($data["score"] ?? -1);
         if ($score < 0 || $score > $criterion->maxscore) {
-            throw new \invalid_parameter_exception("Score is outside criterion range");
+            throw new invalid_parameter_exception("Score is outside criterion range");
         }
         $lock = task_service::activity_lock((int)$activity->id);
         try {

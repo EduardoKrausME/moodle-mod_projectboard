@@ -24,19 +24,20 @@
 
 namespace mod_projectboard;
 
-// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Guarded Moodle class.
-defined("MOODLE_INTERNAL") || die();
+use advanced_testcase;
+use moodle_exception;
+use required_capability_exception;
 
 /**
  * Tests board isolation and persistent task invariants.
  *
- * @covers \mod_projectboard\board_service
- * @covers \mod_projectboard\task_service
- * @covers \mod_projectboard\dependency_service
- * @covers \mod_projectboard\access_manager
+ * @covers board_service
+ * @covers task_service
+ * @covers dependency_service
+ * @covers access_manager
  * @covers \mod_projectboard\checklist_service
  */
-final class task_service_test extends \advanced_testcase {
+final class task_service_test extends advanced_testcase {
     /**
      * Handles setup activity for Project Board.
      */
@@ -61,11 +62,11 @@ final class task_service_test extends \advanced_testcase {
     public function test_individual_boards_reject_other_students(): void {
         [$activity, $cm, $student, $other] = $this->setup_activity();
         $this->setUser($student);
-        $board = \mod_projectboard\board_service::ensure($activity, (int)$student->id);
-        \mod_projectboard\access_manager::require_board((int)$board->id, $activity, $cm);
+        $board = board_service::ensure($activity, (int)$student->id);
+        access_manager::require_board((int)$board->id, $activity, $cm);
         $this->setUser($other);
-        $this->expectException(\required_capability_exception::class);
-        \mod_projectboard\access_manager::require_board((int)$board->id, $activity, $cm);
+        $this->expectException(required_capability_exception::class);
+        access_manager::require_board((int)$board->id, $activity, $cm);
     }
 
     /**
@@ -75,16 +76,16 @@ final class task_service_test extends \advanced_testcase {
         global $DB;
         [$activity, $cm, $student] = $this->setup_activity();
         $this->setUser($student);
-        $board = \mod_projectboard\board_service::ensure($activity, (int)$student->id);
-        $columns = \mod_projectboard\board_service::columns($activity);
-        $first = \mod_projectboard\task_service::create($activity, $cm, [
+        $board = board_service::ensure($activity, (int)$student->id);
+        $columns = board_service::columns($activity);
+        $first = task_service::create($activity, $cm, [
             "boardid" => $board->id, "columnid" => $columns[0]->id, "title" => "First",
         ]);
-        $second = \mod_projectboard\task_service::create($activity, $cm, [
+        $second = task_service::create($activity, $cm, [
             "boardid" => $board->id, "columnid" => $columns[0]->id, "title" => "Second",
         ]);
         $row = $DB->get_record("projectboard_task", ["id" => $second], "*", MUST_EXIST);
-        \mod_projectboard\task_service::move($activity, $cm, [
+        task_service::move($activity, $cm, [
             "taskid" => $second, "columnid" => $columns[0]->id, "position" => 0,
             "version" => $row->version,
         ]);
@@ -100,17 +101,17 @@ final class task_service_test extends \advanced_testcase {
     public function test_dependency_cycles_are_forbidden(): void {
         [$activity, $cm, $student] = $this->setup_activity();
         $this->setUser($student);
-        $board = \mod_projectboard\board_service::ensure($activity, (int)$student->id);
-        $columns = \mod_projectboard\board_service::columns($activity);
-        $a = \mod_projectboard\task_service::create($activity, $cm, [
+        $board = board_service::ensure($activity, (int)$student->id);
+        $columns = board_service::columns($activity);
+        $a = task_service::create($activity, $cm, [
             "boardid" => $board->id, "columnid" => $columns[0]->id, "title" => "A",
         ]);
-        $b = \mod_projectboard\task_service::create($activity, $cm, [
+        $b = task_service::create($activity, $cm, [
             "boardid" => $board->id, "columnid" => $columns[0]->id, "title" => "B",
         ]);
-        \mod_projectboard\dependency_service::add($activity, $cm, $a, $b);
-        $this->expectException(\moodle_exception::class);
-        \mod_projectboard\dependency_service::add($activity, $cm, $b, $a);
+        dependency_service::add($activity, $cm, $a, $b);
+        $this->expectException(moodle_exception::class);
+        dependency_service::add($activity, $cm, $b, $a);
     }
 
     /**
@@ -119,14 +120,14 @@ final class task_service_test extends \advanced_testcase {
     public function test_wip_limit_is_enforced(): void {
         [$activity, $cm, $student] = $this->setup_activity();
         $this->setUser($student);
-        $board = \mod_projectboard\board_service::ensure($activity, (int)$student->id);
-        $columns = \mod_projectboard\board_service::columns($activity);
+        $board = board_service::ensure($activity, (int)$student->id);
+        $columns = board_service::columns($activity);
         $activity->maxwip = 1;
-        \mod_projectboard\task_service::create($activity, $cm, [
+        task_service::create($activity, $cm, [
             "boardid" => $board->id, "columnid" => $columns[0]->id, "title" => "First",
         ]);
-        $this->expectException(\moodle_exception::class);
-        \mod_projectboard\task_service::create($activity, $cm, [
+        $this->expectException(moodle_exception::class);
+        task_service::create($activity, $cm, [
             "boardid" => $board->id, "columnid" => $columns[0]->id, "title" => "Second",
         ]);
     }
@@ -137,16 +138,16 @@ final class task_service_test extends \advanced_testcase {
     public function test_stale_versions_cannot_overwrite_tasks(): void {
         [$activity, $cm, $student] = $this->setup_activity();
         $this->setUser($student);
-        $board = \mod_projectboard\board_service::ensure($activity, (int)$student->id);
-        $columns = \mod_projectboard\board_service::columns($activity);
-        $id = \mod_projectboard\task_service::create($activity, $cm, [
+        $board = board_service::ensure($activity, (int)$student->id);
+        $columns = board_service::columns($activity);
+        $id = task_service::create($activity, $cm, [
             "boardid" => $board->id, "columnid" => $columns[0]->id, "title" => "Original",
         ]);
-        \mod_projectboard\task_service::update($activity, $cm, [
+        task_service::update($activity, $cm, [
             "taskid" => $id, "version" => 1, "title" => "Changed",
         ]);
-        $this->expectException(\moodle_exception::class);
-        \mod_projectboard\task_service::update($activity, $cm, [
+        $this->expectException(moodle_exception::class);
+        task_service::update($activity, $cm, [
             "taskid" => $id, "version" => 1, "title" => "Stale",
         ]);
     }

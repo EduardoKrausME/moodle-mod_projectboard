@@ -24,13 +24,13 @@
 
 namespace mod_projectboard\task;
 
-// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
-defined("MOODLE_INTERNAL") || die();
+use core\task\scheduled_task;
+use mod_projectboard\notification_service;
 
 /**
  * Provides deadline notifications functionality.
  */
-final class deadline_notifications extends \core\task\scheduled_task {
+final class deadline_notifications extends scheduled_task {
     /**
      * Handles get name for Project Board.
      */
@@ -41,6 +41,6 @@ final class deadline_notifications extends \core\task\scheduled_task {
      * Handles execute for Project Board.
      */
     public function execute() {
-        \mod_projectboard\notification_service::scheduled_deadlines();
+        notification_service::scheduled_deadlines();
     }
 }

@@ -24,8 +24,8 @@
 
 namespace mod_projectboard;
 
-// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
-defined("MOODLE_INTERNAL") || die();
+use invalid_parameter_exception;
+use stdClass;
 
 /**
  * Provides checklist service functionality.
@@ -34,7 +34,7 @@ final class checklist_service {
     /**
      * Handles execute operations for Project Board.
      */
-    public static function execute(\stdClass $activity, \stdClass $cm, string $action, array $data): void {
+    public static function execute(stdClass $activity, stdClass $cm, string $action, array $data): void {
         global $DB;
         $task = access_manager::require_task((int)($data["taskid"] ?? 0), $activity, $cm, true);
         access_manager::require_edit($task, $cm);
@@ -44,7 +44,7 @@ final class checklist_service {
             if ($action === "check_add") {
                 $title = trim(clean_param($data["title"] ?? "", PARAM_TEXT));
                 if (!$title) {
-                    throw new \invalid_parameter_exception("Checklist title required");
+                    throw new invalid_parameter_exception("Checklist title required");
                 }
                 $max = (int)$DB->get_field_sql(
                     "SELECT COALESCE(MAX(sortorder), -1) + 1 FROM {projectboard_check} WHERE taskid = ?",
@@ -86,7 +86,7 @@ final class checklist_service {
                         }
                     }
                 } else {
-                    throw new \invalid_parameter_exception("Invalid checklist operation");
+                    throw new invalid_parameter_exception("Invalid checklist operation");
                 }
                 $item->timemodified = time();
                 $DB->update_record("projectboard_check", $item);

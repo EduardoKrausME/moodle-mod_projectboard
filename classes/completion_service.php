@@ -24,8 +24,8 @@
 
 namespace mod_projectboard;
 
-// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
-defined("MOODLE_INTERNAL") || die();
+use completion_info;
+use stdClass;
 
 /**
  * Provides completion service functionality.
@@ -34,7 +34,7 @@ final class completion_service {
     /**
      * Handles completed operations for Project Board.
      */
-    public static function completed(\stdClass $activity, \stdClass $cm, int $userid): bool {
+    public static function completed(stdClass $activity, stdClass $cm, int $userid): bool {
         global $DB;
         if (!$activity->completioncreated && !$activity->completiondone && !$activity->completionproject &&
                 !$activity->completionchecklist && !$activity->completiongraded && !$activity->completionminscore) {
@@ -85,7 +85,7 @@ final class completion_service {
     /**
      * Handles belongs operations for Project Board.
      */
-    private static function belongs(\stdClass $task, \stdClass $activity, int $userid): bool {
+    private static function belongs(stdClass $task, stdClass $activity, int $userid): bool {
         if ($activity->workmode === "individual") {
             return (int)$task->owneruserid === $userid;
         }
@@ -98,10 +98,10 @@ final class completion_service {
     /**
      * Handles refresh operations for Project Board.
      */
-    public static function refresh(\stdClass $activity, \stdClass $cm, int $userid): void {
+    public static function refresh(stdClass $activity, stdClass $cm, int $userid): void {
         global $DB;
         $course = $DB->get_record("course", ["id" => $activity->course], "*", MUST_EXIST);
-        $completion = new \completion_info($course);
+        $completion = new completion_info($course);
         if ($completion->is_enabled($cm) && $cm->completion == COMPLETION_TRACKING_AUTOMATIC) {
             $completion->update_state($cm, COMPLETION_UNKNOWN, $userid);
         }
