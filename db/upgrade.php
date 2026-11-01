@@ -23,7 +23,7 @@
  */
 
 // phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this upgrade entry point.
-defined("MOODLE_INTERNAL") || die();
+defined('MOODLE_INTERNAL') || die();
 
 /**
  * Handles Project Board database version transitions.

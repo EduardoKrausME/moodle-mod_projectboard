@@ -23,7 +23,7 @@
  */
 
 // phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Guarded Moodle class.
-defined("MOODLE_INTERNAL") || die();
+defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . "/mod/projectboard/backup/moodle2/backup_projectboard_stepslib.php");
 

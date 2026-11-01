@@ -23,7 +23,7 @@
  */
 
 // phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this entry point.
-defined("MOODLE_INTERNAL") || die();
+defined('MOODLE_INTERNAL') || die();
 
 $plugin->version = 2026103100;
 $plugin->release = "1.0.1";

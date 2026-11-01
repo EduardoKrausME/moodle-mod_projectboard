@@ -25,7 +25,7 @@
 namespace mod_projectboard\event;
 
 // phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
-defined("MOODLE_INTERNAL") || die();
+defined('MOODLE_INTERNAL') || die();
 
 /**
  * Provides course module viewed functionality.

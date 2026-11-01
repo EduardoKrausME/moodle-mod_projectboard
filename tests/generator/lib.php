@@ -23,7 +23,7 @@
  */
 
 // phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState -- Moodle guards this component.
-defined("MOODLE_INTERNAL") || die();
+defined('MOODLE_INTERNAL') || die();
 
 /**
  * Provides mod projectboard generator functionality.
