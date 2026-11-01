@@ -54,7 +54,7 @@ final class review_service {
      * Handles evaluate for Project Board.
      */
     public static function evaluate(stdClass $activity, stdClass $cm,
-                                    array    $data, bool $approve): void {
+                                    array $data, bool $approve): void {
         global $DB;
         access_manager::require_action("review", $cm);
         $task = access_manager::require_task((int)($data["taskid"] ?? 0), $activity, $cm, true);

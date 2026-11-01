@@ -40,7 +40,7 @@ final class notification_service {
      * Handles send for Project Board.
      */
     public static function send(stdClass $activity, stdClass $task, int $userid, string $provider,
-                                string   $periodkey): void {
+                                string $periodkey): void {
         global $DB;
         if (!$activity->notifications || !$userid || !in_array($provider,
                 ["assignment", "comment", "deadline", "review", "dependency"], true)) {
@@ -93,7 +93,7 @@ final class notification_service {
      * Handles task event for Project Board.
      */
     public static function task_event(stdClass $activity, stdClass $task,
-                                      string   $provider, int $exclude = 0): void {
+                                      string $provider, int $exclude = 0): void {
         global $DB;
         if (!$activity->notifications) {
             return;
