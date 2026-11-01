@@ -1,28 +1,45 @@
-# Project Board for Moodle
+# Project Board
 
-Project Board is a course activity for organising academic projects as individual, Moodle-group, or shared Kanban boards. The activity stores task state on the Moodle server and applies module capabilities and group restrictions to write operations.
+Project Board adds Kanban-style project management to a Moodle course. Instead of sending students to a separate task board, a teacher can organize a project, distribute work and assess its results alongside other learning activities.
 
-## Requirements
+The activity is designed for research projects, group assignments, capstone work and other courses where students need to plan, complete and document several connected tasks.
 
-Moodle 4.5 LTS or Moodle 5.x. Install under `mod/projectboard`. The initial release metadata declares version `2026101500`, release `1.0.0`, and beta maturity until real Moodle integration tests pass.
+## Project organization
 
-## Main components
+A teacher can create a Project Board activity and choose how work should be organized:
 
-- `db/install.xml`: Moodle XMLDB schema for project boards, columns, transitions, tasks, assignments, checklists, dependencies, comments, evidence, functional history, assessments, and deduplicated notifications.
-- `classes/access_manager.php`: module capabilities, individual and Moodle-group board isolation.
-- `classes/task_service.php`, `column_service.php`, `dependency_service.php`, `checklist_service.php`: persistent commands using Moodle database transactions and Lock API.
-- `classes/external/operation.php`: authenticated AJAX controller that delegates to domain services.
-- `templates/*.mustache`, `classes/presentation/board_data.php`, `amd/src/board.js`: server-rendered Kanban with keyboard alternatives.
-- `classes/grading_service.php`, `criterion_service.php`, `completion_service.php`: Moodle gradebook and completion integration.
-- `classes/privacy/provider.php`, `backup/moodle2`: Privacy API and backup/restore.
-- `classes/task/deadline_notifications.php`: scheduled reminder delivery.
+- **Individual boards:** each learner works on their own project board.
+- **Group boards:** Moodle groups manage their own tasks within their assigned group.
+- **Collective boards:** learners contribute to a shared project.
 
-## Permissions
+The teacher can define the project's objective and dates, choose which student actions are allowed, limit work in progress and decide whether evidence must accompany tasks.
 
-Module capabilities are declared under `db/access.php`. Teachers can manage boards, transitions, submissions, and grades. Student writes are constrained to boards they can modify; visible groups permit observation without modification.
+## Planning and following tasks
 
-## Quality gates
+Tasks move across Kanban columns as work progresses. Participants can add and update tasks within their permissions, assign responsibilities and use checklists to divide larger activities into manageable steps.
 
-The repository provides PHPUnit fixtures in `tests/` and an initial Behat scenario in `tests/behat/`. Validate Moodle 4.5 and 5.x with the project's existing CI. Run the official validator from a complete checkout of `EduardoKrausME/moodle-plugin-validate` using `python3 .chatgpt/run.py --check /absolute/path/to/mod/projectboard`. The language normalizer currently conflicts with the mandatory double-quote convention, so `--check` does not by itself establish compliance with both requirements.
+Dependencies show which tasks must be addressed before others. Due dates, comments, evidence and a history of task changes help the group understand what was done and what still requires attention.
 
-The source tree may contain functionality needing additional integration testing; do not deploy as production-ready based on repository contents alone.
+This structure is especially helpful when a project includes research, review, writing and delivery stages that should not all happen at once.
+
+## Teacher oversight and assessment
+
+Teachers can monitor boards and review how students organize and complete their work. Project Board supports project-level, individual and criteria-based grading options, with integration into Moodle's gradebook.
+
+Activity-completion settings can take project milestones and grading into account. The activity also includes deadline-related notifications for participants.
+
+A useful scenario is a group research assignment: students plan data collection, assign analysis tasks, record evidence and submit their final work while the teacher follows progress and evaluates the outcome within Moodle.
+
+## Permissions and privacy
+
+Board access follows the selected working mode and Moodle's permissions. Students can modify the boards assigned to them; where Moodle's group visibility permits it, they may be able to observe another group without changing its work.
+
+Teachers should review the course's group configuration, task-management permissions and grading settings before students begin. Project Board also participates in Moodle's privacy and backup and restore workflows.
+
+## Availability and maturity
+
+Project Board currently carries a **beta** release designation. Institutions should validate their intended workflows, especially group isolation, assessment, completion and backup and restore, before relying on it for high-stakes or production-critical activities.
+
+**Compatibility:** Moodle 4.5 LTS and Moodle 5.x.
+
+**License:** GNU GPL v3 or later.
