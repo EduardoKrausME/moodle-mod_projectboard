@@ -31,10 +31,10 @@ use required_capability_exception;
 /**
  * Tests board isolation and persistent task invariants.
  *
- * @covers board_service
- * @covers task_service
- * @covers dependency_service
- * @covers access_manager
+ * @covers \mod_projectboard\board_service
+ * @covers \mod_projectboard\task_service
+ * @covers \mod_projectboard\dependency_service
+ * @covers \mod_projectboard\access_manager
  * @covers \mod_projectboard\checklist_service
  */
 final class task_service_test extends advanced_testcase {
