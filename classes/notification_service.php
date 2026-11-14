@@ -51,10 +51,20 @@ final class notification_service {
         if ($DB->record_exists("projectboard_notice", $where)) {
             return;
         }
-        $context = context_module::instance(get_coursemodule_from_instance("projectboard", $activity->id)->id);
-        if (!is_enrolled($context, $userid, "mod/projectboard:view", true)) {
+        $cm = get_coursemodule_from_instance("projectboard", $activity->id);
+        if (!$cm) {
             return;
         }
+        $board = $DB->get_record("projectboard_board", [
+            "id" => $task->boardid, "projectboardid" => $activity->id,
+        ]);
+        if (!$board || !$DB->record_exists("projectboard_task", [
+                "id" => $task->id, "boardid" => $board->id,
+            ]) || !access_manager::can_be_assignee($userid, $board, $activity, $cm)) {
+            // Assignees may have left a group, become suspended, or lost access after assignment.
+            return;
+        }
+        $context = context_module::instance($cm->id);
         $target = core_user::get_user($userid);
         $sender = core_user::get_noreply_user();
         $message = new message();
@@ -70,7 +80,7 @@ final class notification_service {
         $message->smallmessage = $message->fullmessage;
         $message->notification = 1;
         $message->contexturl = (new moodle_url("/mod/projectboard/view.php", [
-            "id" => get_coursemodule_from_instance("projectboard", $activity->id)->id, "taskid" => $task->id,
+            "id" => $cm->id, "taskid" => $task->id,
         ]))->out(false);
         $message->contexturlname = $activity->name;
         $transaction = $DB->start_delegated_transaction();

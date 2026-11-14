@@ -154,18 +154,33 @@ final class access_manager {
     }
 
     /**
+     * Checks whether a user can be assigned to a board, including current enrolment and group membership.
+     *
+     * @param int $userid Recipient or proposed assignee.
+     * @param stdClass $board Board holding the task.
+     * @param stdClass $activity Project Board activity.
+     * @param stdClass $cm Course module.
+     * @return bool Whether the user is eligible.
+     */
+    public static function can_be_assignee(int $userid, stdClass $board, stdClass $activity, stdClass $cm): bool {
+        if ($userid <= 0 || (int)$board->projectboardid !== (int)$activity->id ||
+                !is_enrolled(self::context($cm), $userid, "mod/projectboard:view", true)) {
+            return false;
+        }
+        if ($activity->workmode === "individual") {
+            return (int)$board->owneruserid === $userid;
+        }
+        if ($activity->workmode === "groups") {
+            return (int)$board->groupid > 0 && groups_is_member((int)$board->groupid, $userid);
+        }
+        return $activity->workmode === "collective";
+    }
+
+    /**
      * Handles require assignee operations for Project Board.
      */
     public static function require_assignee(int $userid, stdClass $board, stdClass $activity, stdClass $cm): void {
-        global $DB;
-        $context = self::context($cm);
-        if (!is_enrolled($context, $userid, "mod/projectboard:view", true)) {
-            throw new moodle_exception("invalidaccess", "projectboard");
-        }
-        if ($activity->workmode === "individual" && (int)$board->owneruserid !== $userid) {
-            throw new moodle_exception("invalidaccess", "projectboard");
-        }
-        if ($activity->workmode === "groups" && !groups_is_member((int)$board->groupid, $userid)) {
+        if (!self::can_be_assignee($userid, $board, $activity, $cm)) {
             throw new moodle_exception("invalidaccess", "projectboard");
         }
     }
