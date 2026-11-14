@@ -158,7 +158,9 @@ final class provider implements
         foreach ($DB->get_records_sql($sql, ["level" => CONTEXT_MODULE, "name" => "projectboard"]) as $row) {
             $activity = self::activity(context::instance_by_id($row->id));
             if ($activity && in_array($userid, self::users($activity), true)) {
-                $contexts->add_context($row->id);
+                // contextlist accepts SQL queries, not individual context IDs.
+                $contexts->add_from_sql("SELECT id FROM {context} WHERE id = :contextid",
+                    ["contextid" => (int)$row->id]);
             }
         }
         return $contexts;
