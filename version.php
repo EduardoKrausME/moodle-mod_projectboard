@@ -24,8 +24,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2026110101;
-$plugin->release = "1.0.3";
+$plugin->version = 2026111400;
+$plugin->release = "1.0.4";
 $plugin->requires = 2024100700;
 $plugin->component = "mod_projectboard";
 $plugin->maturity = MATURITY_BETA;
