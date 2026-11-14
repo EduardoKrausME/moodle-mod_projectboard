@@ -61,6 +61,9 @@ final class provider implements
     public static function get_metadata(collection $collection): collection {
         foreach (self::TABLES as $table => $field) {
             $fields = [$field => "privacy:metadata:" . $table];
+            if (in_array($table, ["projectboard_grade", "projectboard_score"], true)) {
+                $fields["gradedby"] = "privacy:metadata:" . $table;
+            }
             foreach (["content", "description", "feedback", "oldvalue", "newvalue", "title", "name",
                 "priority", "tags", "grade"] as $candidate) {
                 if (in_array($candidate, explode(",", [
@@ -76,7 +79,7 @@ final class provider implements
             }
             $collection->add_database_table($table, $fields, "privacy:metadata:" . $table);
         }
-        $collection->add_subsystem_link("core_files", [], "privacy:metadata:projectboard_evidence");
+        $collection->add_subsystem_link("core_files", [], "privacy:metadata:projectboard_files");
         $collection->add_subsystem_link("core_message", [], "privacy:metadata:projectboard_notice");
         return $collection;
     }
@@ -184,7 +187,8 @@ final class provider implements
             }
             $data = (object)["tasks" => [], "comments" => [], "evidence" => [],
                 "grades" => [], "assignments" => [], "checklists" => [], "history" => [],
-                "notices" => [], "criteria" => [], "ownedboards" => []];
+                "notices" => [], "criteria" => [], "ownedboards" => [],
+                "gradesgiven" => [], "criteriagiven" => []];
             $boards = $DB->get_records("projectboard_board", ["projectboardid" => $activity->id]);
             foreach ($boards as $board) {
                 if ((int)$board->owneruserid === $userid) {
@@ -214,6 +218,8 @@ final class provider implements
             }
             $data->grades = array_values($DB->get_records("projectboard_grade",
                 ["projectboardid" => $activity->id, "userid" => $userid]));
+            $data->gradesgiven = array_values($DB->get_records("projectboard_grade",
+                ["projectboardid" => $activity->id, "gradedby" => $userid]));
             $criteria = $DB->get_fieldset_select("projectboard_criterion", "id", "projectboardid = ?",
                 [$activity->id]);
             foreach ($criteria as $criterionid) {
@@ -222,12 +228,21 @@ final class provider implements
                 ]) as $score) {
                     $data->criteria[] = $score;
                 }
+                foreach ($DB->get_records("projectboard_score", [
+                    "criterionid" => $criterionid, "gradedby" => $userid,
+                ]) as $score) {
+                    $data->criteriagiven[] = $score;
+                }
             }
             $writer = writer::with_context($context);
             $writer->export_data([get_string("pluginname", "projectboard")], $data);
             foreach ($data->evidence as $evidence) {
-                $writer->export_area_files([get_string("evidence", "projectboard")],
+                $writer->export_area_files([get_string("evidence", "projectboard"), (string)$evidence->id],
                     "mod_projectboard", "evidence", $evidence->id);
+            }
+            foreach ($data->comments as $comment) {
+                $writer->export_area_files([get_string("comment", "projectboard"), (string)$comment->id],
+                    "mod_projectboard", "commentattachment", $comment->id);
             }
         }
     }

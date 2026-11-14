@@ -139,6 +139,7 @@ $string['privacy:metadata:projectboard_board'] = 'Titularidade de quadros indivi
 $string['privacy:metadata:projectboard_check'] = 'Responsabilidade e conclusão de checklists.';
 $string['privacy:metadata:projectboard_comment'] = 'Comentários e respostas dos participantes.';
 $string['privacy:metadata:projectboard_evidence'] = 'Evidências enviadas e arquivos associados.';
+$string['privacy:metadata:projectboard_files'] = 'Arquivos anexados às evidências e aos comentários das tarefas.';
 $string['privacy:metadata:projectboard_grade'] = 'Avaliações e feedbacks.';
 $string['privacy:metadata:projectboard_history'] = 'Histórico de auditoria das alterações.';
 $string['privacy:metadata:projectboard_notice'] = 'Notificações já enviadas.';

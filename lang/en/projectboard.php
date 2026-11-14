@@ -139,6 +139,7 @@ $string['privacy:metadata:projectboard_board'] = 'Personal project board ownersh
 $string['privacy:metadata:projectboard_check'] = 'Checklist responsibility and completion.';
 $string['privacy:metadata:projectboard_comment'] = 'Comments and replies created by participants.';
 $string['privacy:metadata:projectboard_evidence'] = 'Submitted evidence and associated files.';
+$string['privacy:metadata:projectboard_files'] = 'Files attached to evidence and task comments.';
 $string['privacy:metadata:projectboard_grade'] = 'Project assessment and feedback.';
 $string['privacy:metadata:projectboard_history'] = 'Audit history of project changes.';
 $string['privacy:metadata:projectboard_notice'] = 'Notifications already delivered.';
