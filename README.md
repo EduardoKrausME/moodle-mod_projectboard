@@ -36,10 +36,12 @@ Board access follows the selected working mode and Moodle's permissions. Student
 
 Teachers should review the course's group configuration, task-management permissions and grading settings before students begin. Project Board also participates in Moodle's privacy and backup and restore workflows.
 
-## Availability and maturity
-
-Project Board currently carries a **beta** release designation. Institutions should validate their intended workflows, especially group isolation, assessment, completion and backup and restore, before relying on it for high-stakes or production-critical activities.
+## Compatibility and release information
 
 **Compatibility:** Moodle 4.5 LTS and Moodle 5.x.
+
+The current version, release number and maturity are maintained in `version.php` rather than copied into this README, so the documentation does not become outdated after a new release.
+
+Institutions should validate their workflows, especially group isolation, assessment, completion, and backup and restore, before using the activity for high-stakes or production-critical work.
 
 **License:** GNU GPL v3 or later.
