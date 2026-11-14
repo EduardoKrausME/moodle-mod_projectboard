@@ -321,8 +321,8 @@ final class provider implements
             }
         }
         $DB->delete_records("projectboard_grade", ["projectboardid" => $activity->id, "userid" => $userid]);
-        $DB->execute("UPDATE {projectboard_grade} SET gradedby = 0 WHERE projectboardid = ? AND gradedby = ?",
-            [$activity->id, $userid]);
+        $DB->set_field_select("projectboard_grade", "gradedby", 0,
+            "projectboardid = ? AND gradedby = ?", [$activity->id, $userid]);
         $criteria = $DB->get_fieldset_select("projectboard_criterion", "id", "projectboardid = ?", [$activity->id]);
         foreach ($criteria as $criterionid) {
             $DB->delete_records("projectboard_score", ["criterionid" => $criterionid, "userid" => $userid]);
