@@ -149,20 +149,81 @@ final class provider implements
      * Handles get contexts for userid for Project Board.
      */
     public static function get_contexts_for_userid(int $userid): contextlist {
-        global $DB;
         $contexts = new contextlist();
-        $sql = "SELECT ctx.id FROM {context} ctx
+        // Identify activity contexts from the records that actually refer to this user.
+        $sql = "SELECT DISTINCT ctx.id
+                  FROM {context} ctx
                   JOIN {course_modules} cm ON cm.id = ctx.instanceid
                   JOIN {modules} m ON m.id = cm.module
-                 WHERE ctx.contextlevel = :level AND m.name = :name";
-        foreach ($DB->get_records_sql($sql, ["level" => CONTEXT_MODULE, "name" => "projectboard"]) as $row) {
-            $activity = self::activity(context::instance_by_id($row->id));
-            if ($activity && in_array($userid, self::users($activity), true)) {
-                // The contextlist accepts SQL queries, not individual context IDs.
-                $contexts->add_from_sql("SELECT id FROM {context} WHERE id = :contextid",
-                    ["contextid" => (int)$row->id]);
-            }
-        }
+                 WHERE ctx.contextlevel = :contextlevel
+                   AND m.name = :modulename
+                   AND (
+                       EXISTS (
+                           SELECT 1 FROM {projectboard_board} b
+                            WHERE b.projectboardid = cm.instance
+                              AND b.owneruserid = :boardowner
+                       )
+                       OR EXISTS (
+                           SELECT 1 FROM {projectboard_grade} g
+                            WHERE g.projectboardid = cm.instance
+                              AND (g.userid = :gradeowner OR g.gradedby = :gradegrader)
+                       )
+                       OR EXISTS (
+                           SELECT 1 FROM {projectboard_criterion} c
+                           JOIN {projectboard_score} s ON s.criterionid = c.id
+                            WHERE c.projectboardid = cm.instance
+                              AND (s.userid = :scoreowner OR s.gradedby = :scoregrader)
+                       )
+                       OR EXISTS (
+                           SELECT 1 FROM {projectboard_board} b
+                           JOIN {projectboard_task} t ON t.boardid = b.id
+                            WHERE b.projectboardid = cm.instance
+                              AND (
+                                  t.createdby = :taskcreator
+                                  OR EXISTS (
+                                      SELECT 1 FROM {projectboard_comment} pc
+                                       WHERE pc.taskid = t.id AND pc.userid = :commentuser
+                                  )
+                                  OR EXISTS (
+                                      SELECT 1 FROM {projectboard_evidence} pe
+                                       WHERE pe.taskid = t.id AND pe.userid = :evidenceuser
+                                  )
+                                  OR EXISTS (
+                                      SELECT 1 FROM {projectboard_assignee} pa
+                                       WHERE pa.taskid = t.id AND pa.userid = :assigneeuser
+                                  )
+                                  OR EXISTS (
+                                      SELECT 1 FROM {projectboard_check} ck
+                                       WHERE ck.taskid = t.id AND ck.userid = :checkuser
+                                  )
+                                  OR EXISTS (
+                                      SELECT 1 FROM {projectboard_history} ph
+                                       WHERE ph.taskid = t.id AND ph.userid = :historyuser
+                                  )
+                                  OR EXISTS (
+                                      SELECT 1 FROM {projectboard_notice} pn
+                                       WHERE pn.taskid = t.id AND pn.userid = :noticeuser
+                                  )
+                              )
+                       )
+                   )";
+        $params = [
+            "contextlevel" => CONTEXT_MODULE,
+            "modulename" => "projectboard",
+            "boardowner" => $userid,
+            "gradeowner" => $userid,
+            "gradegrader" => $userid,
+            "scoreowner" => $userid,
+            "scoregrader" => $userid,
+            "taskcreator" => $userid,
+            "commentuser" => $userid,
+            "evidenceuser" => $userid,
+            "assigneeuser" => $userid,
+            "checkuser" => $userid,
+            "historyuser" => $userid,
+            "noticeuser" => $userid,
+        ];
+        $contexts->add_from_sql($sql, $params);
         return $contexts;
     }
 
