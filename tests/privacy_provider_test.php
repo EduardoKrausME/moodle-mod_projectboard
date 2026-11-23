@@ -66,7 +66,9 @@ final class privacy_provider_test extends advanced_testcase {
             "score" => 8, "timemodified" => time(),
         ]);
 
-        $this->assertContains($context->id, provider::get_contexts_for_userid((int)$grader->id)->get_contextids());
+        // Database drivers may return context IDs as strings, so normalize them before comparing.
+        $contextids = provider::get_contexts_for_userid((int)$grader->id)->get_contextids();
+        $this->assertContains((int)$context->id, array_map("intval", $contextids));
         $approved = new approved_contextlist($grader, "mod_projectboard", [$context->id]);
         provider::export_user_data($approved);
         $data = writer::with_context($context)->get_data([get_string("pluginname", "projectboard")]);
